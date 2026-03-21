@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+@theme {
+  --color-et-red: #C0392B;
+  --color-et-red-hover: #A93226;
+  --color-et-offwhite: #FAF9F7;
+  --color-et-ink: #1A1A1A;
+  --color-et-ink-light: #333333;
+  --color-et-gold: #F0A500;
+  --color-et-gray-light: #E0E0E0;
+  --color-et-gray-border: #D5D5D5;
+  --color-et-green: #27500A;
+  --color-et-green-light: #EAF3DE;
+}
+
+:root {
+  --background: var(--color-et-offwhite);
+  --foreground: var(--color-et-ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #121212;
+    --foreground: #F5F5F5;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer utilities {
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
