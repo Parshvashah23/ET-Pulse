@@ -1,10 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
+import { Video, BarChart3, Globe, CheckCircle } from 'lucide-react';
 import StreamingText from './StreamingText';
 import SectionNav from './SectionNav';
 import SourceCard from './SourceCard';
 import PersonaSwitcher from './PersonaSwitcher';
+import GlossaryTooltip from './GlossaryTooltip';
+import RelatedStories from './RelatedStories';
 import { streamSSE } from '../lib/sse';
 
 type BriefingLayoutProps = {
@@ -125,10 +128,50 @@ export default function BriefingLayout({ initialQuery }: BriefingLayoutProps) {
           <StreamingText content={content} isStreaming={isStreaming} />
           
           {!isStreaming && content && (
-            <div className="mt-12 p-6 bg-et-green-light border border-et-green/20 rounded-lg text-center">
-              <h4 className="font-bold text-et-green mb-2">Briefing Complete</h4>
-              <p className="text-sm text-et-green/80">Want to know more? Chat with the AI below.</p>
+            <div className="mt-12 space-y-4">
+              <div className="p-6 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <CheckCircle className="w-5 h-5 text-emerald-600" />
+                  <h4 className="font-bold text-emerald-700 font-sans">Briefing Complete</h4>
+                </div>
+                <p className="text-sm text-emerald-600">Want to know more? Chat with the AI below.</p>
+              </div>
+
+              {/* Cross-Feature Navigation */}
+              <div className="flex flex-wrap gap-3 justify-center">
+                <a
+                  href={`/video?text=${encodeURIComponent(content.slice(0, 2000))}`}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 gradient-brand text-white text-sm font-semibold rounded-xl shadow-md hover:shadow-lg transition-smooth cursor-pointer"
+                >
+                  <Video className="w-4 h-4" />
+                  Generate Video
+                </a>
+                <a
+                  href="/arc"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--surface)] border border-[var(--border)] text-[var(--text-secondary)] text-sm font-semibold rounded-xl shadow-sm hover:shadow-md hover:border-[var(--text-faint)] transition-smooth cursor-pointer"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  View Story Arc
+                </a>
+                <a
+                  href="/vernacular"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--surface)] border border-[var(--border)] text-[var(--text-secondary)] text-sm font-semibold rounded-xl shadow-sm hover:shadow-md hover:border-[var(--text-faint)] transition-smooth cursor-pointer"
+                >
+                  <Globe className="w-4 h-4" />
+                  Translate Brief
+                </a>
+              </div>
             </div>
+          )}
+
+          {/* Glossary Terms */}
+          {!isStreaming && content && (
+            <GlossaryTooltip text={content} />
+          )}
+
+          {/* Related Stories */}
+          {!isStreaming && content && (
+            <RelatedStories query={query} />
           )}
         </div>
 

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { BarChart3, BookOpen, Loader2 } from 'lucide-react';
 
 export default function FeedPage() {
   const router = useRouter();
@@ -52,25 +53,36 @@ export default function FeedPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Persona Banner Header */}
-      <div className="bg-et-ink text-white p-6 rounded-xl mb-8 flex justify-between items-center shadow-lg">
-        <div>
-          <h1 className="text-2xl font-serif tracking-tight font-bold mb-1">My ET Feed</h1>
-          <p className="opacity-80 text-sm">Curated for a {profile.expertise_level} {profile.role}</p>
-        </div>
-        <div className="hidden sm:flex gap-2">
-          {profile.interests.map((topic: string) => (
-            <span key={topic} className="px-3 py-1 bg-white/10 border border-white/20 rounded-full text-xs font-semibold">
-              {topic}
-            </span>
-          ))}
+      <div className="bg-et-ink text-white p-6 rounded-xl mb-8 shadow-lg">
+        <div className="flex justify-between items-center">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-2xl font-serif tracking-tight font-bold">My ET Feed</h1>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-500/20 border border-emerald-400/30 rounded-full text-[10px] font-semibold text-emerald-300">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400"></span>
+                </span>
+                Live
+              </span>
+            </div>
+            <p className="opacity-80 text-sm">Curated for a {profile.expertise_level} {profile.role}</p>
+          </div>
+          <div className="hidden sm:flex gap-2 items-center">
+            {profile.interests.map((topic: string) => (
+              <span key={topic} className="px-3 py-1 bg-white/10 border border-white/20 rounded-full text-xs font-semibold">
+                {topic}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
       <div className="space-y-6 flex flex-col items-center">
         {isLoading && (
           <div className="py-20 flex flex-col items-center justify-center opacity-60">
-             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-et-red mb-4"></div>
-             <p className="font-medium animate-pulse">Running {profile.role} curation models...</p>
+             <Loader2 className="w-10 h-10 animate-spin text-emerald-600 mb-4" />
+             <p className="font-medium animate-pulse text-[var(--text-secondary)]">Running {profile.role} curation models...</p>
           </div>
         )}
 
@@ -114,10 +126,23 @@ export default function FeedPage() {
               </div>
 
               <div className="flex justify-between items-center border-t border-et-gray-light pt-4 mt-2">
-                 <span className="text-xs text-et-ink-light opacity-80">Curated by Claude 3 Haiku</span>
-                 <a href={story.url} target="_blank" rel="noopener noreferrer" className="px-5 py-2 bg-et-red text-white text-sm font-medium rounded-full hover:bg-et-red-hover transition-colors">
-                   Read Full Story
-                 </a>
+                 <span className="text-xs text-et-ink-light opacity-80">Curated by AI</span>
+                 <div className="flex gap-2">
+                   <button
+                     onClick={() => router.push(`/?q=${encodeURIComponent(story.title)}`)}
+                     className="inline-flex items-center gap-2 px-4 py-2 gradient-brand text-white text-sm font-semibold rounded-xl hover:shadow-md transition-smooth cursor-pointer"
+                   >
+                     <BookOpen className="w-4 h-4" />
+                     Read Brief
+                   </button>
+                   <a
+                     href="/arc"
+                     className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--surface)] border border-[var(--border)] text-[var(--text-secondary)] text-sm font-semibold rounded-xl hover:border-[var(--text-faint)] transition-smooth cursor-pointer"
+                   >
+                     <BarChart3 className="w-4 h-4" />
+                     Story Arc
+                   </a>
+                 </div>
               </div>
             </div>
           );

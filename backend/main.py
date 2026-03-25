@@ -53,11 +53,29 @@ from backend.routes.brief import router as brief_router
 from backend.routes.stream import router as stream_router
 from backend.routes.followup import router as followup_router
 from backend.routes.feed import router as feed_router
+from backend.routes.arc import router as arc_router
+from backend.audit import router as audit_router
+from backend.routes.video import router as video_router
+from backend.routes.translate import router as translate_router
+from backend.routes.auth import router as auth_router
+from backend.routes.bookmarks import router as bookmarks_router
+from backend.routes.history import router as history_router
+from backend.routes.glossary import router as glossary_router
+from backend.routes.related import router as related_router
 
+app.include_router(auth_router, prefix="/api")
+app.include_router(bookmarks_router, prefix="/api")
+app.include_router(history_router, prefix="/api")
 app.include_router(brief_router, prefix="/api")
 app.include_router(stream_router, prefix="/api")
 app.include_router(followup_router, prefix="/api")
 app.include_router(feed_router, prefix="/api")
+app.include_router(arc_router, prefix="/api")
+app.include_router(audit_router, prefix="/api")
+app.include_router(video_router, prefix="/api")
+app.include_router(translate_router, prefix="/api")
+app.include_router(glossary_router, prefix="/api")
+app.include_router(related_router, prefix="/api")
 
 @app.get("/")
 async def root():

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import AppLayout from '../components/AppLayout';
+import Providers from '../components/Providers';
 
 export const metadata: Metadata = {
   title: 'ET Pulse | AI Newsroom',
@@ -13,11 +14,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
-        <AppLayout>
-          {children}
-        </AppLayout>
+        <Providers>
+          <AppLayout>
+            {children}
+          </AppLayout>
+        </Providers>
       </body>
     </html>
   );
