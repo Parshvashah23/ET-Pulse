@@ -12,7 +12,7 @@ from backend.rag import retrieve
 client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
 
 SYSTEM_PROMPT = """
-You are a financial sentiment analyst for the Economic Times.
+You are a financial sentiment analyst for a Top-Tier Publication.
 Given news article excerpts about a topic, analyze the sentiment of each individual source excerpt.
 
 Output ONLY a JSON object with a "sentiment_series" key containing an array:

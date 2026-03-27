@@ -76,10 +76,10 @@ export default function VernacularPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-et-ink mb-2">
+          <h1 className="text-3xl font-serif font-bold text-[var(--text-primary)] mb-2">
             Vernacular Newsroom
           </h1>
-          <p className="text-sm text-et-ink-light">
+          <p className="text-sm text-[var(--text-secondary)]">
             Business news culturally adapted for regional readers — not just translated, but rewritten.
           </p>
         </div>
@@ -105,8 +105,8 @@ export default function VernacularPage() {
 
       {/* English Mode */}
       {selectedLang === "en" && (
-        <div className="bg-et-offwhite rounded-xl border border-et-gray-border p-8 text-center">
-          <p className="text-et-ink-light text-sm">
+        <div className="bg-et-offwhite rounded-xl border border-[var(--border)] p-8 text-center">
+          <p className="text-[var(--text-secondary)] text-sm">
             Select a regional language above to see the Vernacular Newsroom.
             <br />
             Available: Hindi (हि), Marathi (म)
@@ -118,7 +118,7 @@ export default function VernacularPage() {
       {loading && (
         <div className="flex items-center justify-center gap-3 py-12">
           <div className="w-5 h-5 border-2 border-et-ink border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-et-ink-light">
+          <span className="text-sm text-[var(--text-secondary)]">
             Translating with cultural adaptation...
           </span>
         </div>
@@ -137,24 +137,24 @@ export default function VernacularPage() {
           {stories.map((story, i) => (
             <div
               key={i}
-              className="bg-white rounded-xl border border-et-gray-border p-6 hover:shadow-md transition-shadow"
+              className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between mb-3">
-                <h3 className="font-bold text-et-ink text-base">
+                <h3 className="font-bold text-[var(--text-primary)] text-base">
                   {SAMPLE_TOPICS[i]}
                 </h3>
                 <AudioBriefing text={story.translated} language={story.language} />
               </div>
 
               {/* Translated text */}
-              <p className="text-sm text-et-ink leading-relaxed mb-3">
+              <p className="text-sm text-[var(--text-primary)] leading-relaxed mb-3">
                 {story.translated}
               </p>
 
               {/* Glossary terms found */}
               {story.glossary_terms.length > 0 && (
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] text-et-ink-light">
+                  <span className="text-[10px] text-[var(--text-secondary)]">
                     Finance terms:
                   </span>
                   {story.glossary_terms.map((term, j) => (
@@ -170,10 +170,10 @@ export default function VernacularPage() {
 
               {/* Original */}
               <details className="mt-3">
-                <summary className="text-xs text-et-ink-light cursor-pointer hover:text-et-ink">
+                <summary className="text-xs text-[var(--text-secondary)] cursor-pointer hover:text-[var(--text-primary)]">
                   View original English
                 </summary>
-                <p className="text-xs text-et-ink-light mt-2 italic">
+                <p className="text-xs text-[var(--text-secondary)] mt-2 italic">
                   {story.original}
                 </p>
               </details>

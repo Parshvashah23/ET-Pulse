@@ -16,10 +16,10 @@ export default function PersonaBanner() {
   if (!profile) return null;
 
   return (
-    <div className="bg-et-gray-light border-b border-et-gray-border px-4 py-2 flex justify-between items-center text-sm">
+    <div className="bg-et-gray-light border-b border-[var(--border)] px-4 py-2 flex justify-between items-center text-sm">
       <div className="flex items-center gap-2">
-        <span className="font-semibold text-et-ink">Active Profile:</span>
-        <span className="text-et-ink-light bg-white px-2 py-0.5 rounded shadow-sm border border-et-gray-border">
+        <span className="font-semibold text-[var(--text-primary)]">Active Profile:</span>
+        <span className="text-[var(--text-secondary)] bg-[var(--surface)] px-2 py-0.5 rounded shadow-sm border border-[var(--border)]">
           {profile.role} ({profile.expertise_level})
         </span>
       </div>

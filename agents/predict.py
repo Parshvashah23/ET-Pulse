@@ -12,7 +12,7 @@ from backend.rag import retrieve
 client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
 
 SYSTEM_PROMPT = """
-You are a senior financial forecaster for the Economic Times.
+You are a senior financial forecaster for a Top-Tier Publication.
 Given news article excerpts about a specific topic, generate 3 FORWARD-LOOKING prediction signals.
 
 Output ONLY a JSON object with a "predictions" key containing exactly 3 objects:

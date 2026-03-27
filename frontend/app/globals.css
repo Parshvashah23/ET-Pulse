@@ -1,5 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap');
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&display=swap');
 
 @theme {
   /* Brand Colors — ET Pulse Fintech Palette */
@@ -87,7 +87,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6, .font-serif {
-  font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+  font-family: 'Merriweather', Georgia, 'Times New Roman', serif;
 }
 
 /* Utilities Layer */
@@ -139,14 +139,14 @@ h1, h2, h3, h4, h5, h6, .font-serif {
   }
 
   .gradient-mesh {
-    background: 
+    background:
       radial-gradient(ellipse at 20% 50%, rgba(192, 57, 43, 0.08) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 20%, rgba(240, 165, 0, 0.06) 0%, transparent 50%),
       radial-gradient(ellipse at 50% 80%, rgba(59, 130, 246, 0.04) 0%, transparent 50%);
   }
 
   :root.dark .gradient-mesh {
-    background: 
+    background:
       radial-gradient(ellipse at 20% 50%, rgba(192, 57, 43, 0.12) 0%, transparent 50%),
       radial-gradient(ellipse at 80% 20%, rgba(240, 165, 0, 0.08) 0%, transparent 50%),
       radial-gradient(ellipse at 50% 80%, rgba(59, 130, 246, 0.06) 0%, transparent 50%);
@@ -163,7 +163,7 @@ h1, h2, h3, h4, h5, h6, .font-serif {
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-xs);
-    transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), 
+    transition: box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1),
                 transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
                 border-color 0.25s ease;
   }
@@ -293,6 +293,11 @@ h1, h2, h3, h4, h5, h6, .font-serif {
     pointer-events: none;
     z-index: 1;
   }
+
+  /* Ticker pause on hover */
+  .hover\:pause:hover {
+    animation-play-state: paused;
+  }
 }
 
 /* Keyframes */
@@ -334,7 +339,7 @@ h1, h2, h3, h4, h5, h6, .font-serif {
 
 @keyframes ticker {
   0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  100% { transform: translateX(-33.33%); }
 }
 
 /* Selection */

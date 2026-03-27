@@ -13,14 +13,14 @@ from backend.rag import retrieve
 client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY", "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"))
 
 PERSONAS = {
-    "general": "You are a senior financial editor at Economic Times. Write a clear, structured briefing.",
-    "mf_investor": "You are a mutual fund advisor at Economic Times. Focus on impacts on mutual funds, SIPs, and retail portfolios.",
-    "founder": "You are an ET startup editor. Focus on funding, IPOs, scaling, and founder insights.",
-    "student": "You are an ET educational reporter. Explain financial concepts simply, outline basics before details.",
+    "general": "You are a senior financial editor. Write a clear, structured briefing.",
+    "mf_investor": "You are a mutual fund advisor. Focus on impacts on mutual funds, SIPs, and retail portfolios.",
+    "founder": "You are a startup editor. Focus on funding, IPOs, scaling, and founder insights.",
+    "student": "You are an educational reporter. Explain financial concepts simply, outline basics before details.",
 }
 
 SYSTEM_PROMPT = """
-You are an expert financial journalist for the Economic Times (ET Pulse).
+You are an expert financial journalist for ET Pulse.
 Your goal is to write a highly structured, accurate, and engaging news briefing based ONLY on the provided source excerpts.
 
 REQUIREMENTS:
@@ -42,7 +42,7 @@ async def generate_brief_stream(query: str, persona: str = "general") -> AsyncGe
     chunks = retrieve(query, n=8)
     
     if not chunks:
-        yield "data: " + json.dumps({"content": "Sorry, I couldn't find any relevant Economic Times articles for that query."}) + "\n\n"
+        yield "data: " + json.dumps({"content": "Sorry, I couldn't find any relevant news articles for that query."}) + "\n\n"
         yield "data: [DONE]\n\n"
         return
 

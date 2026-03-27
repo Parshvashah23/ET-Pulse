@@ -40,7 +40,7 @@ export default function StreamingText({ content, isStreaming }: { content: strin
             {parts.map((part, pIdx) => {
               if (part.startsWith('[Source:')) {
                 return (
-                  <span key={pIdx} className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-et-gray-light text-et-ink-light mx-1 border border-et-gray-border">
+                  <span key={pIdx} className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-et-gray-light text-[var(--text-secondary)] mx-1 border border-[var(--border)]">
                     {part}
                   </span>
                 );
@@ -62,7 +62,7 @@ export default function StreamingText({ content, isStreaming }: { content: strin
   };
 
   return (
-    <div className="text-lg text-et-ink font-sans">
+    <div className="text-lg text-[var(--text-primary)] font-sans">
       {renderFormattedContent()}
       
       {/* Blinking cursor while streaming */}

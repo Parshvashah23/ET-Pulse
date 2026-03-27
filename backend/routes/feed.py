@@ -10,6 +10,7 @@ class UserProfile(BaseModel):
     role: str
     expertise_level: str
     interests: List[str]
+    page: int = 1
 
 class FeedResponse(BaseModel):
     feed: List[dict]

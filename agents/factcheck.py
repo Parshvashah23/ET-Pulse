@@ -8,7 +8,7 @@ from groq import AsyncGroq
 client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY", "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"))
 
 SYSTEM_PROMPT = """
-You are a rigorous Fact-Checking Editor for the Economic Times.
+You are a rigorous Fact-Checking Editor for a Top-Tier Publication.
 Given a draft briefing and the original source text chunks it was based on, evaluate the confidence of the briefing.
 
 Output ONLY a JSON array of objects with the following structure:

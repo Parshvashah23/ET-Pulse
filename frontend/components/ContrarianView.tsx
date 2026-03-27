@@ -17,7 +17,7 @@ interface ContrarianViewProps {
 export default function ContrarianView({ data }: ContrarianViewProps) {
   if (!data || !data.contrarian_view) {
     return (
-      <div className="bg-white rounded-xl border border-et-gray-border p-8 text-center text-et-ink-light">
+      <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-8 text-center text-[var(--text-secondary)]">
         No contrarian analysis available for this topic.
       </div>
     );
@@ -27,7 +27,7 @@ export default function ContrarianView({ data }: ContrarianViewProps) {
     <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200 p-6">
       <div className="flex items-center gap-2 mb-4">
         <span className="text-xl">🔄</span>
-        <h3 className="text-lg font-bold text-et-ink">Contrarian View</h3>
+        <h3 className="text-lg font-bold text-[var(--text-primary)]">Contrarian View</h3>
         <span className="ml-auto text-xs font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
           {data.evidence_count} source{data.evidence_count !== 1 ? "s" : ""}
         </span>
@@ -35,30 +35,30 @@ export default function ContrarianView({ data }: ContrarianViewProps) {
 
       {/* Dominant Narrative */}
       <div className="mb-4">
-        <div className="text-xs font-semibold text-et-ink-light uppercase tracking-wider mb-1">
+        <div className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
           What Most Coverage Says
         </div>
-        <p className="text-sm text-et-ink-light leading-relaxed italic">
+        <p className="text-sm text-[var(--text-secondary)] leading-relaxed italic">
           &ldquo;{data.dominant_narrative}&rdquo;
         </p>
       </div>
 
       {/* Contrarian View */}
-      <div className="bg-white/70 rounded-lg p-4 mb-4 border border-amber-100">
+      <div className="bg-[var(--surface)]/70 rounded-lg p-4 mb-4 border border-amber-100">
         <div className="text-xs font-semibold text-amber-700 uppercase tracking-wider mb-1">
           The Other Side
         </div>
-        <p className="text-sm text-et-ink leading-relaxed font-medium">
+        <p className="text-sm text-[var(--text-primary)] leading-relaxed font-medium">
           {data.contrarian_view}
         </p>
       </div>
 
       {/* Supporting Evidence */}
       <div className="mb-4">
-        <div className="text-xs font-semibold text-et-ink-light uppercase tracking-wider mb-1">
+        <div className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
           Supporting Evidence
         </div>
-        <p className="text-xs text-et-ink-light leading-relaxed">
+        <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
           {data.supporting_evidence}
         </p>
       </div>

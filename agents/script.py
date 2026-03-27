@@ -10,7 +10,7 @@ from groq import AsyncGroq
 client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
 
 SYSTEM_PROMPT = """
-You are a broadcast script writer for ET (Economic Times) video news.
+You are a broadcast script writer for a Top-Tier Publication video news.
 Given an article text, create a 5-part video narration script suitable for a 60-90 second news video.
 
 Output ONLY a JSON object:

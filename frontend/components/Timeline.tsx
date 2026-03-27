@@ -34,15 +34,15 @@ export default function Timeline({ events, onEventClick }: TimelineProps) {
 
   if (!events || events.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-et-gray-border p-8 text-center text-et-ink-light">
+      <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-8 text-center text-[var(--text-secondary)]">
         No timeline events available for this topic.
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-et-gray-border p-6">
-      <h3 className="text-lg font-bold text-et-ink mb-2">Event Timeline</h3>
+    <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-6">
+      <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">Event Timeline</h3>
       
       {/* Legend */}
       <div className="flex gap-4 mb-4 text-xs">
@@ -52,7 +52,7 @@ export default function Timeline({ events, onEventClick }: TimelineProps) {
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: TYPE_COLORS[type] }}
             />
-            <span className="text-et-ink-light">{label}</span>
+            <span className="text-[var(--text-secondary)]">{label}</span>
           </div>
         ))}
       </div>
@@ -75,7 +75,7 @@ export default function Timeline({ events, onEventClick }: TimelineProps) {
                   onClick={() => onEventClick(event)}
                 >
                   {/* Date label */}
-                  <div className="text-[10px] text-et-ink-light mb-1 whitespace-nowrap">
+                  <div className="text-[10px] text-[var(--text-secondary)] mb-1 whitespace-nowrap">
                     {new Date(event.date).toLocaleDateString("en-IN", {
                       month: "short",
                       day: "numeric",
@@ -97,7 +97,7 @@ export default function Timeline({ events, onEventClick }: TimelineProps) {
                   </div>
 
                   {/* Event snippet */}
-                  <div className="mt-2 px-1 text-[11px] text-center text-et-ink-light leading-tight max-w-[100px] line-clamp-3 group-hover:text-et-ink transition-colors">
+                  <div className="mt-2 px-1 text-[11px] text-center text-[var(--text-secondary)] leading-tight max-w-[100px] line-clamp-3 group-hover:text-[var(--text-primary)] transition-colors">
                     {event.event.length > 60
                       ? event.event.slice(0, 57) + "..."
                       : event.event}

@@ -50,7 +50,7 @@ export default function AudioBriefing({ text, language }: AudioBriefingProps) {
       disabled={loading}
       className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
         loading
-          ? "bg-et-gray-light text-et-ink-light cursor-not-allowed"
+          ? "bg-et-gray-light text-[var(--text-secondary)] cursor-not-allowed"
           : "bg-et-green-light text-et-green hover:bg-green-100"
       }`}
       title="Listen to this briefing"

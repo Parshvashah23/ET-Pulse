@@ -12,7 +12,7 @@ from backend.rag import retrieve
 client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
 
 SYSTEM_PROMPT = """
-You are an expert financial analyst for the Economic Times.
+You are an expert financial analyst for a Top-Tier Publication.
 Given news article excerpts about a specific topic, extract all KEY PLAYERS — people, companies, regulators, and institutions mentioned.
 
 Output ONLY a JSON object with a "players" key containing an array:

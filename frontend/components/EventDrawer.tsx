@@ -34,7 +34,7 @@ export default function EventDrawer({ event, onClose }: EventDrawerProps) {
       />
 
       {/* Drawer */}
-      <div className="fixed top-0 right-0 w-full max-w-md h-full bg-white shadow-2xl z-50 overflow-y-auto animate-in slide-in-from-right duration-300">
+      <div className="fixed top-0 right-0 w-full max-w-md h-full bg-[var(--surface)] shadow-2xl z-50 overflow-y-auto animate-in slide-in-from-right duration-300">
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -45,20 +45,20 @@ export default function EventDrawer({ event, onClose }: EventDrawerProps) {
                   backgroundColor: TYPE_COLORS[event.type] || "#9CA3AF",
                 }}
               />
-              <span className="text-xs font-semibold uppercase tracking-wider text-et-ink-light">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
                 {event.type}
               </span>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-et-gray-light transition-colors text-et-ink-light"
+              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-et-gray-light transition-colors text-[var(--text-secondary)]"
             >
               ✕
             </button>
           </div>
 
           {/* Date */}
-          <div className="text-sm text-et-ink-light mb-2">
+          <div className="text-sm text-[var(--text-secondary)] mb-2">
             {new Date(event.date).toLocaleDateString("en-IN", {
               weekday: "long",
               year: "numeric",
@@ -68,13 +68,13 @@ export default function EventDrawer({ event, onClose }: EventDrawerProps) {
           </div>
 
           {/* Event description */}
-          <h2 className="text-xl font-bold text-et-ink mb-4 leading-tight">
+          <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4 leading-tight">
             {event.event}
           </h2>
 
           {/* Significance */}
           <div className="flex items-center gap-2 mb-6">
-            <span className="text-xs text-et-ink-light">Significance:</span>
+            <span className="text-xs text-[var(--text-secondary)]">Significance:</span>
             <div className="flex gap-1">
               {[1, 2, 3].map((level) => (
                 <div
@@ -87,7 +87,7 @@ export default function EventDrawer({ event, onClose }: EventDrawerProps) {
                 />
               ))}
             </div>
-            <span className="text-xs font-medium text-et-ink">
+            <span className="text-xs font-medium text-[var(--text-primary)]">
               {event.significance === 3
                 ? "Major"
                 : event.significance === 2
@@ -98,11 +98,11 @@ export default function EventDrawer({ event, onClose }: EventDrawerProps) {
 
           {/* Source */}
           {event.source_title && (
-            <div className="bg-et-offwhite rounded-lg p-4 border border-et-gray-border">
-              <div className="text-xs font-semibold text-et-ink-light uppercase tracking-wider mb-1">
+            <div className="bg-et-offwhite rounded-lg p-4 border border-[var(--border)]">
+              <div className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-1">
                 Source Article
               </div>
-              <div className="text-sm font-medium text-et-ink">
+              <div className="text-sm font-medium text-[var(--text-primary)]">
                 {event.source_title}
               </div>
             </div>

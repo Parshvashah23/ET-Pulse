@@ -1,16 +1,21 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { 
-  Compass, Newspaper, BarChart3, Video, Globe, 
-  ArrowRight, Search, TrendingUp, TrendingDown, Minus,
+import {
+  Compass, Newspaper, BarChart3, Video, Globe,
+  ArrowRight, Search,
   Zap, Shield, Clock, ChevronRight, Sparkles, Activity,
-  PieChart, ArrowUpRight, ArrowDownRight
+  ExternalLink,
+  RefreshCw
 } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import BriefingLayout from '../components/BriefingLayout';
+import StockCarousel from '../components/StockCarousel';
+import MarketHeatmap from '../components/MarketHeatmap';
+import PortfolioTracker from '../components/PortfolioTracker';
+import { NewsArticle, fetchMarketNews, formatNewsDate } from '../lib/newsService';
 
 /* ─── Feature Definitions ─── */
 const FEATURES = [
@@ -73,39 +78,6 @@ const TRENDING_QUERIES = [
   "Zepto IPO valuation",
 ];
 
-/* ─── Simulated Market Data ─── */
-const MARKET_INDICES = [
-  { name: "SENSEX", value: "82,431.50", change: "+1.24%", positive: true },
-  { name: "NIFTY 50", value: "24,867.30", change: "+0.98%", positive: true },
-  { name: "BANK NIFTY", value: "51,234.80", change: "-0.32%", positive: false },
-  { name: "NIFTY IT", value: "38,567.20", change: "+2.15%", positive: true },
-  { name: "USD/INR", value: "83.42", change: "-0.08%", positive: false },
-  { name: "GOLD", value: "72,450", change: "+0.56%", positive: true },
-];
-
-const SECTOR_HEATMAP = [
-  { name: "IT", change: 2.15, size: "large" },
-  { name: "Pharma", change: 1.82, size: "large" },
-  { name: "Banking", change: -0.32, size: "large" },
-  { name: "Auto", change: 1.45, size: "medium" },
-  { name: "FMCG", change: 0.67, size: "medium" },
-  { name: "Metals", change: -1.23, size: "medium" },
-  { name: "Energy", change: 0.89, size: "medium" },
-  { name: "Realty", change: -0.56, size: "small" },
-  { name: "Infra", change: 0.34, size: "small" },
-  { name: "Media", change: -0.78, size: "small" },
-  { name: "PSU", change: 1.12, size: "small" },
-  { name: "Fin Svc", change: 0.45, size: "small" },
-];
-
-const PORTFOLIO_OVERVIEW = [
-  { name: "TCS", allocation: 22, change: 2.4, value: "₹4,215" },
-  { name: "HDFC Bank", allocation: 18, change: -0.3, value: "₹1,678" },
-  { name: "Reliance", allocation: 15, change: 1.1, value: "₹2,890" },
-  { name: "Infosys", allocation: 12, change: 3.2, value: "₹1,567" },
-  { name: "ICICI Bank", allocation: 10, change: 0.8, value: "₹1,245" },
-  { name: "Others", allocation: 23, change: 0.5, value: "₹3,102" },
-];
 
 const STATS = [
   { value: "5", label: "AI Features", icon: Sparkles },
@@ -125,61 +97,53 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
 };
 
-/* ─── Heatmap Color Helper ─── */
-function getHeatmapColor(change: number): string {
-  if (change > 2) return 'bg-emerald-500 text-white';
-  if (change > 1) return 'bg-emerald-400/80 text-white';
-  if (change > 0) return 'bg-emerald-300/60 text-emerald-900';
-  if (change > -1) return 'bg-red-300/60 text-red-900';
-  if (change > -2) return 'bg-red-400/80 text-white';
-  return 'bg-red-500 text-white';
-}
-
-function getHeatmapDarkColor(change: number): string {
-  if (change > 2) return 'bg-emerald-600';
-  if (change > 1) return 'bg-emerald-700/80';
-  if (change > 0) return 'bg-emerald-800/50';
-  if (change > -1) return 'bg-red-800/50';
-  if (change > -2) return 'bg-red-700/80';
-  return 'bg-red-600';
-}
 
 /* ─── Component ─── */
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [news, setNews] = useState<NewsArticle[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+
+  // Fetch live news
+  useEffect(() => {
+    async function loadNews() {
+      setNewsLoading(true);
+      const articles = await fetchMarketNews();
+      setNews(articles.slice(0, 6)); // Take top 6 articles
+      setNewsLoading(false);
+    }
+    loadNews();
+  }, []);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+  };
+
+  const refreshNews = async () => {
+    setNewsLoading(true);
+    const articles = await fetchMarketNews();
+    setNews(articles.slice(0, 6));
+    setNewsLoading(false);
   };
 
   if (searchQuery) {
     return <BriefingLayout initialQuery={searchQuery} />;
   }
 
+  // Calculate portfolio totals
+
+
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col">
 
-      {/* Market Ticker */}
-      <div className="border-b border-[var(--border)] bg-[var(--surface)] overflow-hidden">
-        <div className="flex animate-[ticker_30s_linear_infinite] whitespace-nowrap py-2 px-4">
-          {[...MARKET_INDICES, ...MARKET_INDICES].map((index, i) => (
-            <div key={i} className="flex items-center gap-3 mx-6 shrink-0">
-              <span className="text-xs font-semibold text-[var(--text-secondary)]">{index.name}</span>
-              <span className="text-xs font-mono font-medium">{index.value}</span>
-              <span className={`flex items-center text-[11px] font-semibold ${index.positive ? 'text-emerald-600' : 'text-red-500'}`}>
-                {index.positive ? <TrendingUp className="w-3 h-3 mr-0.5" /> : <TrendingDown className="w-3 h-3 mr-0.5" />}
-                {index.change}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Enhanced Stock Ticker Carousel */}
+      <StockCarousel />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden py-16 md:py-24 px-4">
         <div className="absolute inset-0 gradient-mesh" />
-        
-        <motion.div 
+
+        <motion.div
           className="max-w-4xl mx-auto text-center relative z-10"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -201,7 +165,7 @@ export default function Home() {
           </p>
 
           <p className="text-sm md:text-base text-[var(--text-muted)] max-w-xl mx-auto leading-relaxed mb-10">
-            Ask anything about markets, policies, or companies. Get structured, 
+            Ask anything about markets, policies, or companies. Get structured,
             citation-backed briefings personalized to your role.
           </p>
 
@@ -231,7 +195,7 @@ export default function Home() {
       {/* Stats Bar */}
       <section className="border-y border-[var(--border)] bg-[var(--surface)]">
         <div className="max-w-5xl mx-auto px-4 py-5">
-          <motion.div 
+          <motion.div
             className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center"
             variants={containerVariants}
             initial="hidden"
@@ -249,105 +213,97 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Live News Section */}
+      <section className="py-10 px-4 bg-[var(--bg-primary)]">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-serif font-bold">Live Market News</h2>
+              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                </span>
+                Live
+              </span>
+            </div>
+            <button
+              onClick={refreshNews}
+              className="flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-et-red transition-colors cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${newsLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+          </div>
+
+          {newsLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="card p-4 animate-pulse">
+                  <div className="h-4 bg-[var(--surface-hover)] rounded w-1/4 mb-3" />
+                  <div className="h-5 bg-[var(--surface-hover)] rounded w-full mb-2" />
+                  <div className="h-5 bg-[var(--surface-hover)] rounded w-3/4 mb-3" />
+                  <div className="h-3 bg-[var(--surface-hover)] rounded w-full mb-1" />
+                  <div className="h-3 bg-[var(--surface-hover)] rounded w-2/3" />
+                </div>
+              ))}
+            </div>
+          ) : news.length === 0 ? (
+            <div className="text-center py-12 text-[var(--text-muted)]">
+              <Newspaper className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p>Unable to load news. Please try again later.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {news.map((article, i) => (
+                <motion.a
+                  key={article.article_id || i}
+                  href={article.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="card p-4 group cursor-pointer"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  whileHover={{ y: -2 }}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-et-red bg-et-red/5 px-2 py-0.5 rounded">
+                      {article.category?.[0] || 'Business'}
+                    </span>
+                    <span className="text-[10px] text-[var(--text-faint)]">
+                      {formatNewsDate(article.pubDate)}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-semibold leading-snug mb-2 line-clamp-2 group-hover:text-et-red transition-colors">
+                    {article.title}
+                  </h3>
+                  <p className="text-xs text-[var(--text-muted)] line-clamp-2 mb-3">
+                    {article.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-[var(--text-faint)]">
+                      {article.source_name || 'News Source'}
+                    </span>
+                    <ExternalLink className="w-3 h-3 text-[var(--text-faint)] group-hover:text-et-red transition-colors" />
+                  </div>
+                </motion.a>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Market Heatmap + Portfolio */}
       <section className="py-12 px-4 bg-[var(--bg-secondary)]">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-            {/* Sector Heatmap */}
-            <motion.div
-              className="card p-6"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-[var(--text-muted)]" />
-                    Sector Heatmap
-                  </h3>
-                  <p className="text-xs text-[var(--text-muted)] mt-0.5">Today&apos;s sectoral performance</p>
-                </div>
-                <span className="text-[10px] font-medium text-[var(--text-faint)] uppercase tracking-wider">Live</span>
-              </div>
+            {/* Enhanced Sector Heatmap */}
+            <MarketHeatmap />
 
-              <div className="grid grid-cols-4 gap-1.5">
-                {SECTOR_HEATMAP.map((sector) => (
-                  <div
-                    key={sector.name}
-                    className={`${getHeatmapColor(sector.change)} rounded-lg p-3 text-center cursor-pointer transition-smooth hover:scale-[1.02] ${
-                      sector.size === 'large' ? 'col-span-2 row-span-1' : 'col-span-1'
-                    }`}
-                  >
-                    <div className="text-[11px] font-bold leading-tight">{sector.name}</div>
-                    <div className="text-[10px] font-mono mt-0.5 opacity-90">
-                      {sector.change > 0 ? '+' : ''}{sector.change}%
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex items-center justify-center gap-4 mt-4 text-[10px] text-[var(--text-faint)]">
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-500 inline-block" /> Bearish</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-[var(--surface-elevated)] inline-block border border-[var(--border)]" /> Flat</span>
-                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-500 inline-block" /> Bullish</span>
-              </div>
-            </motion.div>
-
-            {/* Portfolio Tracker */}
-            <motion.div
-              className="card p-6"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-            >
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <h3 className="text-lg font-bold flex items-center gap-2">
-                    <PieChart className="w-5 h-5 text-[var(--text-muted)]" />
-                    Portfolio Overview
-                  </h3>
-                  <p className="text-xs text-[var(--text-muted)] mt-0.5">Model portfolio allocation</p>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm font-bold">₹14,697</div>
-                  <div className="text-[10px] text-emerald-600 font-semibold">+1.42% today</div>
-                </div>
-              </div>
-
-              {/* Allocation Bar */}
-              <div className="flex rounded-full h-3 overflow-hidden mb-4">
-                <div className="bg-blue-500" style={{ width: '22%' }} title="TCS" />
-                <div className="bg-violet-500" style={{ width: '18%' }} title="HDFC Bank" />
-                <div className="bg-amber-500" style={{ width: '15%' }} title="Reliance" />
-                <div className="bg-emerald-500" style={{ width: '12%' }} title="Infosys" />
-                <div className="bg-rose-500" style={{ width: '10%' }} title="ICICI Bank" />
-                <div className="bg-slate-400" style={{ width: '23%' }} title="Others" />
-              </div>
-
-              {/* Stock list */}
-              <div className="space-y-2">
-                {PORTFOLIO_OVERVIEW.map((stock) => (
-                  <div key={stock.name} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-[var(--surface-hover)] transition-smooth cursor-pointer group">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-[var(--bg-secondary)] flex items-center justify-center text-[10px] font-bold text-[var(--text-muted)]">
-                        {stock.allocation}%
-                      </div>
-                      <div>
-                        <div className="text-sm font-semibold">{stock.name}</div>
-                        <div className="text-[10px] text-[var(--text-faint)]">{stock.value}</div>
-                      </div>
-                    </div>
-                    <div className={`flex items-center gap-1 text-xs font-semibold ${stock.change > 0 ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {stock.change > 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownRight className="w-3.5 h-3.5" />}
-                      {stock.change > 0 ? '+' : ''}{stock.change}%
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
+            {/* Enhanced Portfolio Tracker */}
+            <PortfolioTracker />
 
           </div>
         </div>
@@ -370,7 +326,7 @@ export default function Home() {
             </p>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
             variants={containerVariants}
             initial="hidden"
@@ -385,7 +341,7 @@ export default function Home() {
                   className="group card card-interactive p-6 overflow-hidden relative"
                 >
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-[0.03] transition-opacity duration-300 rounded-2xl`} />
-                  
+
                   <div className="relative">
                     <div className={`w-10 h-10 rounded-xl ${feature.bg} flex items-center justify-center mb-4`}>
                       <Icon className={`w-5 h-5 ${feature.color}`} />
@@ -426,7 +382,7 @@ export default function Home() {
             <p className="text-[var(--text-muted)] text-sm">RAG-powered AI that cites every claim</p>
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
             variants={containerVariants}
             initial="hidden"

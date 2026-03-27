@@ -45,11 +45,11 @@ export default function OnboardingPage() {
   return (
     <div className="max-w-3xl mx-auto px-4 py-16 animate-in fade-in duration-700">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-serif font-bold text-et-ink mb-4">Set up My ET</h1>
-        <p className="text-lg text-et-ink-light">Tell us what you care about so we can personalize your intelligence feed.</p>
+        <h1 className="text-4xl font-serif font-bold text-[var(--text-primary)] mb-4">Set up My ET</h1>
+        <p className="text-lg text-[var(--text-secondary)]">Tell us what you care about so we can personalize your intelligence feed.</p>
       </div>
 
-      <div className="bg-white border border-et-gray-border rounded-xl shadow-lg p-8 relative overflow-hidden">
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl shadow-lg p-8 relative overflow-hidden">
         {/* Progress Bar */}
         <div className="absolute top-0 left-0 w-full h-1 bg-et-gray-light">
           <div 
@@ -68,10 +68,10 @@ export default function OnboardingPage() {
                   key={r}
                   onClick={() => setRole(r)}
                   className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                    role === r ? 'border-et-red bg-et-red/5' : 'border-et-gray-light hover:border-et-gray-border'
+                    role === r ? 'border-et-red bg-et-red/5' : 'border-et-gray-light hover:border-[var(--border)]'
                   }`}
                 >
-                  <div className="font-semibold text-et-ink">{r}</div>
+                  <div className="font-semibold text-[var(--text-primary)]">{r}</div>
                 </button>
               ))}
             </div>
@@ -79,7 +79,7 @@ export default function OnboardingPage() {
               <button 
                 onClick={() => setStep(2)}
                 disabled={!role}
-                className="px-8 py-3 bg-et-ink text-white rounded-full font-medium hover:bg-et-ink-light disabled:opacity-50 transition-colors"
+                className="px-8 py-3 bg-et-red text-white rounded-full font-medium hover:bg-et-red-hover disabled:opacity-50 transition-colors"
               >
                 Next
               </button>
@@ -99,7 +99,7 @@ export default function OnboardingPage() {
                   className={`px-5 py-3 rounded-full border-2 transition-all font-medium ${
                     interests.includes(topic) 
                       ? 'border-et-red bg-et-red text-white' 
-                      : 'border-et-gray-border text-et-ink-light hover:border-et-ink hover:text-et-ink'
+                      : 'border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--text-primary)] hover:text-[var(--text-primary)]'
                   }`}
                 >
                   {topic}
@@ -107,11 +107,11 @@ export default function OnboardingPage() {
               ))}
             </div>
             <div className="mt-12 flex justify-between">
-              <button onClick={() => setStep(1)} className="px-6 py-3 font-medium text-et-ink-light hover:text-et-ink">Back</button>
+              <button onClick={() => setStep(1)} className="px-6 py-3 font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)]">Back</button>
               <button 
                 onClick={() => setStep(3)}
                 disabled={interests.length === 0}
-                className="px-8 py-3 bg-et-ink text-white rounded-full font-medium hover:bg-et-ink-light disabled:opacity-50 transition-colors"
+                className="px-8 py-3 bg-et-red text-white rounded-full font-medium hover:bg-et-red-hover disabled:opacity-50 transition-colors"
               >
                 Next
               </button>
@@ -133,16 +133,16 @@ export default function OnboardingPage() {
                   key={level.id}
                   onClick={() => setExpertise(level.id)}
                   className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                    expertise === level.id ? 'border-et-red bg-et-red/5' : 'border-et-gray-light hover:border-et-gray-border'
+                    expertise === level.id ? 'border-et-red bg-et-red/5' : 'border-et-gray-light hover:border-[var(--border)]'
                   }`}
                 >
-                  <div className="font-bold text-et-ink mb-1">{level.label}</div>
-                  <div className="text-sm text-et-ink-light">{level.desc}</div>
+                  <div className="font-bold text-[var(--text-primary)] mb-1">{level.label}</div>
+                  <div className="text-sm text-[var(--text-muted)]">{level.desc}</div>
                 </button>
               ))}
             </div>
             <div className="mt-8 flex justify-between items-center">
-              <button onClick={() => setStep(2)} className="px-6 py-3 font-medium text-et-ink-light hover:text-et-ink">Back</button>
+              <button onClick={() => setStep(2)} className="px-6 py-3 font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)]">Back</button>
               <button 
                 onClick={handleFinish}
                 disabled={isSaving}

@@ -23,7 +23,7 @@ export default function StorySelector({
 }: StorySelectorProps) {
   return (
     <div className="flex items-center gap-3 py-4 overflow-x-auto">
-      <span className="text-sm font-semibold text-et-ink-light whitespace-nowrap">
+      <span className="text-sm font-semibold text-[var(--text-secondary)] whitespace-nowrap">
         Story:
       </span>
       <div className="flex gap-2">
@@ -36,7 +36,7 @@ export default function StorySelector({
               ${
                 selectedTopic === topic.id
                   ? "bg-et-ink text-white shadow-md"
-                  : "bg-white border border-et-gray-border text-et-ink-light hover:bg-et-gray-light hover:text-et-ink"
+                  : "bg-[var(--surface)] border border-[var(--border)] text-[var(--text-secondary)] hover:bg-et-gray-light hover:text-[var(--text-primary)]"
               }
               ${loading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
             `}

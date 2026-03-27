@@ -18,8 +18,8 @@ const PERSONAS: Array<{ id: Persona; label: string; icon: string }> = [
 export default function PersonaSwitcher({ currentPersona, onChange, disabled }: PersonaSwitcherProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-sm font-medium text-et-ink-light mr-2">Perspective:</span>
-      <div className="flex bg-white border border-et-gray-border rounded-full p-1 shadow-sm">
+      <span className="text-sm font-medium text-[var(--text-secondary)] mr-2">Perspective:</span>
+      <div className="flex bg-[var(--surface)] border border-[var(--border)] rounded-full p-1 shadow-sm">
         {PERSONAS.map((p) => {
           const isActive = currentPersona === p.id;
           return (
@@ -31,7 +31,7 @@ export default function PersonaSwitcher({ currentPersona, onChange, disabled }: 
                 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-all
                 ${isActive 
                   ? 'bg-et-ink text-white font-medium shadow-md' 
-                  : 'text-et-ink-light hover:bg-et-gray-light hover:text-et-ink'
+                  : 'text-[var(--text-secondary)] hover:bg-et-gray-light hover:text-[var(--text-primary)]'
                 }
                 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
               `}

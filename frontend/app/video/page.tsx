@@ -84,30 +84,30 @@ export default function VideoStudioPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-serif font-bold text-et-ink mb-2">
+        <h1 className="text-3xl font-serif font-bold text-[var(--text-primary)] mb-2">
           AI Video Studio
         </h1>
-        <p className="text-sm text-et-ink-light">
+        <p className="text-sm text-[var(--text-secondary)]">
           Paste any article text → get a broadcast-quality 60-90 second MP4 with AI narration and animated slides.
         </p>
       </div>
 
       {/* Input Section */}
-      <div className="bg-white rounded-xl border border-et-gray-border p-6 mb-6">
-        <label className="text-sm font-semibold text-et-ink block mb-2">
+      <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-6 mb-6">
+        <label className="text-sm font-semibold text-[var(--text-primary)] block mb-2">
           Article Text
         </label>
         <textarea
           value={articleText}
           onChange={(e) => setArticleText(e.target.value)}
           placeholder="Paste the full article text here..."
-          className="w-full h-48 px-4 py-3 border border-et-gray-border rounded-lg text-sm text-et-ink resize-none focus:outline-none focus:ring-2 focus:ring-et-red/30 focus:border-et-red"
+          className="w-full h-48 px-4 py-3 border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] resize-none focus:outline-none focus:ring-2 focus:ring-et-red/30 focus:border-et-red"
         />
 
         <div className="flex items-center justify-between mt-4">
           {/* Language Selector */}
           <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-et-ink-light">Language:</span>
+            <span className="text-xs font-medium text-[var(--text-secondary)]">Language:</span>
             <div className="flex gap-1">
               {LANGUAGES.map((lang) => (
                 <button
@@ -116,7 +116,7 @@ export default function VideoStudioPage() {
                   className={`px-3 py-1.5 text-xs rounded-full transition-all ${
                     language === lang.code
                       ? "bg-et-ink text-white"
-                      : "bg-et-gray-light text-et-ink-light hover:bg-et-gray-border"
+                      : "bg-et-gray-light text-[var(--text-secondary)] hover:bg-et-gray-border"
                   }`}
                 >
                   {lang.flag} {lang.label}
@@ -142,15 +142,15 @@ export default function VideoStudioPage() {
 
       {/* Progress */}
       {loading && (
-        <div className="bg-white rounded-xl border border-et-gray-border p-6 mb-6">
+        <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-6 mb-6">
           <div className="flex items-center gap-3">
             <div className="w-5 h-5 border-2 border-et-red border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm text-et-ink font-medium">{progress}</span>
+            <span className="text-sm text-[var(--text-primary)] font-medium">{progress}</span>
           </div>
           <div className="mt-3 w-full h-1.5 bg-et-gray-light rounded-full overflow-hidden">
             <div className="h-full bg-et-red rounded-full animate-pulse-slow" style={{ width: "60%" }} />
           </div>
-          <p className="text-xs text-et-ink-light mt-2">
+          <p className="text-xs text-[var(--text-secondary)] mt-2">
             This may take 60-90 seconds. The AI is writing, narrating, designing, and assembling your video.
           </p>
         </div>
@@ -165,7 +165,7 @@ export default function VideoStudioPage() {
 
       {/* Result */}
       {result && (
-        <div className="bg-white rounded-xl border border-et-gray-border overflow-hidden mb-6">
+        <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] overflow-hidden mb-6">
           {/* Video Player */}
           <div className="bg-black">
             <video
@@ -183,7 +183,7 @@ export default function VideoStudioPage() {
               <span className="bg-et-green-light text-et-green text-xs font-semibold px-2.5 py-1 rounded-full">
                 ✓ Generated
               </span>
-              <span className="text-xs text-et-ink-light">
+              <span className="text-xs text-[var(--text-secondary)]">
                 {result.duration_seconds}s duration • Generated in {result.generation_time_seconds}s
               </span>
             </div>
@@ -191,10 +191,10 @@ export default function VideoStudioPage() {
             {/* Script Accordion */}
             <button
               onClick={() => setShowScript(!showScript)}
-              className="w-full text-left text-sm font-semibold text-et-ink flex items-center justify-between py-2 border-t border-et-gray-border"
+              className="w-full text-left text-sm font-semibold text-[var(--text-primary)] flex items-center justify-between py-2 border-t border-[var(--border)]"
             >
               <span>📝 View Script</span>
-              <span className="text-et-ink-light">{showScript ? "▲" : "▼"}</span>
+              <span className="text-[var(--text-secondary)]">{showScript ? "▲" : "▼"}</span>
             </button>
 
             {showScript && result.script?.script && (
@@ -204,7 +204,7 @@ export default function VideoStudioPage() {
                     <div className="text-xs font-semibold text-et-red uppercase tracking-wider mb-1">
                       {key.replace("_", " ")}
                     </div>
-                    <p className="text-sm text-et-ink leading-relaxed">
+                    <p className="text-sm text-[var(--text-primary)] leading-relaxed">
                       {value?.text || ""}
                     </p>
                   </div>

@@ -71,25 +71,25 @@ export default function AuditPanel({ isOpen, onToggle }: AuditPanelProps) {
             className="fixed inset-0 bg-black/20 z-30"
             onClick={onToggle}
           />
-          <div className="fixed bottom-0 right-0 w-full max-w-lg h-[70vh] bg-white border-l border-t border-et-gray-border shadow-2xl z-40 rounded-tl-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300">
+          <div className="fixed bottom-0 right-0 w-full max-w-lg h-[70vh] bg-[var(--surface)] border-l border-t border-[var(--border)] shadow-2xl z-40 rounded-tl-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300">
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-et-gray-border bg-et-offwhite">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-[var(--border)] bg-et-offwhite">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                <h3 className="text-sm font-bold text-et-ink">
+                <h3 className="text-sm font-bold text-[var(--text-primary)]">
                   AI Decision Log
                 </h3>
               </div>
               <div className="flex items-center gap-3">
                 <button
                   onClick={fetchAuditLog}
-                  className="text-xs text-et-ink-light hover:text-et-ink transition-colors"
+                  className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   Refresh
                 </button>
                 <button
                   onClick={onToggle}
-                  className="text-et-ink-light hover:text-et-ink text-sm"
+                  className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm"
                 >
                   ✕
                 </button>
@@ -99,18 +99,18 @@ export default function AuditPanel({ isOpen, onToggle }: AuditPanelProps) {
             {/* Entries */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2">
               {loading ? (
-                <div className="text-center text-et-ink-light text-sm py-8">
+                <div className="text-center text-[var(--text-secondary)] text-sm py-8">
                   Loading audit log...
                 </div>
               ) : entries.length === 0 ? (
-                <div className="text-center text-et-ink-light text-sm py-8">
+                <div className="text-center text-[var(--text-secondary)] text-sm py-8">
                   No agent activity logged yet.
                 </div>
               ) : (
                 entries.map((entry) => (
                   <div
                     key={entry.id}
-                    className="bg-et-offwhite rounded-lg p-3 border border-et-gray-border text-xs"
+                    className="bg-et-offwhite rounded-lg p-3 border border-[var(--border)] text-xs"
                   >
                     <div className="flex items-center gap-2 mb-1">
                       <span
@@ -120,10 +120,10 @@ export default function AuditPanel({ isOpen, onToggle }: AuditPanelProps) {
                             AGENT_COLORS[entry.agent] || "#9CA3AF",
                         }}
                       />
-                      <span className="font-semibold text-et-ink capitalize">
+                      <span className="font-semibold text-[var(--text-primary)] capitalize">
                         {entry.agent}
                       </span>
-                      <span className="text-et-ink-light ml-auto">
+                      <span className="text-[var(--text-secondary)] ml-auto">
                         {entry.duration_ms}ms
                       </span>
                       <span
@@ -136,15 +136,15 @@ export default function AuditPanel({ isOpen, onToggle }: AuditPanelProps) {
                         {entry.status}
                       </span>
                     </div>
-                    <div className="text-et-ink-light truncate">
+                    <div className="text-[var(--text-secondary)] truncate">
                       Query: {entry.query}
                     </div>
                     {entry.output_summary && (
-                      <div className="text-et-ink-light mt-1 line-clamp-2">
+                      <div className="text-[var(--text-secondary)] mt-1 line-clamp-2">
                         → {entry.output_summary}
                       </div>
                     )}
-                    <div className="text-et-ink-light mt-1 text-[10px]">
+                    <div className="text-[var(--text-secondary)] mt-1 text-[10px]">
                       {new Date(entry.timestamp).toLocaleString()}
                     </div>
                   </div>

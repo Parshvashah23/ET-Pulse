@@ -17,9 +17,9 @@ export default function FollowUpChat({ onAsk, disabled }: FollowUpChatProps) {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-et-gray-border shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
+    <div className="fixed bottom-0 left-0 right-0 p-4 bg-[var(--surface)] border-t border-[var(--border)] shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20">
       <div className="max-w-4xl mx-auto flex items-center gap-4">
-        <div className="hidden sm:flex items-center gap-2 text-sm font-bold text-et-ink-light whitespace-nowrap">
+        <div className="hidden sm:flex items-center gap-2 text-sm font-bold text-[var(--text-secondary)] whitespace-nowrap">
           <svg className="w-5 h-5 text-et-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>

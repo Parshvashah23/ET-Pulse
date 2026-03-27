@@ -24,15 +24,15 @@ const ENTITY_BADGES: Record<string, { bg: string; text: string }> = {
 export default function KeyPlayers({ players }: KeyPlayersProps) {
   if (!players || players.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-et-gray-border p-8 text-center text-et-ink-light">
+      <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-8 text-center text-[var(--text-secondary)]">
         No key players identified for this topic.
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl border border-et-gray-border p-6">
-      <h3 className="text-lg font-bold text-et-ink mb-4">Key Players</h3>
+    <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-6">
+      <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Key Players</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {players.map((player, i) => {
           const badge =
@@ -41,14 +41,14 @@ export default function KeyPlayers({ players }: KeyPlayersProps) {
           return (
             <div
               key={i}
-              className="border border-et-gray-border rounded-lg p-4 hover:shadow-md transition-shadow"
+              className="border border-[var(--border)] rounded-lg p-4 hover:shadow-md transition-shadow"
             >
               <div className="flex items-start justify-between mb-2">
                 <div>
-                  <div className="font-semibold text-et-ink text-sm">
+                  <div className="font-semibold text-[var(--text-primary)] text-sm">
                     {player.name}
                   </div>
-                  <div className="text-xs text-et-ink-light">{player.role}</div>
+                  <div className="text-xs text-[var(--text-secondary)]">{player.role}</div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span
@@ -56,12 +56,12 @@ export default function KeyPlayers({ players }: KeyPlayersProps) {
                   >
                     {player.entity_type || "person"}
                   </span>
-                  <span className="text-[10px] bg-et-gray-light text-et-ink-light px-2 py-0.5 rounded-full font-medium">
+                  <span className="text-[10px] bg-et-gray-light text-[var(--text-secondary)] px-2 py-0.5 rounded-full font-medium">
                     {player.mentioned_count}×
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-et-ink-light leading-relaxed">
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                 {player.latest_action}
               </p>
             </div>

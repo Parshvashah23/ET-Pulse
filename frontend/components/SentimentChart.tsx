@@ -41,7 +41,7 @@ interface SentimentChartProps {
 export default function SentimentChart({ data }: SentimentChartProps) {
   if (!data || data.length === 0) {
     return (
-      <div className="bg-white rounded-xl border border-et-gray-border p-8 text-center text-et-ink-light">
+      <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-8 text-center text-[var(--text-secondary)]">
         No sentiment data available for this topic.
       </div>
     );
@@ -136,8 +136,8 @@ export default function SentimentChart({ data }: SentimentChartProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-et-gray-border p-6">
-      <h3 className="text-lg font-bold text-et-ink mb-4">Sentiment Over Time</h3>
+    <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-6">
+      <h3 className="text-lg font-bold text-[var(--text-primary)] mb-4">Sentiment Over Time</h3>
       <div className="h-[300px]">
         <Line data={chartData} options={options} />
       </div>

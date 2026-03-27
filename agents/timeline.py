@@ -12,7 +12,7 @@ from backend.rag import retrieve
 client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY"))
 
 SYSTEM_PROMPT = """
-You are an expert financial timeline analyst for the Economic Times.
+You are an expert financial timeline analyst for a Top-Tier Publication.
 Given a set of news article excerpts about a specific topic, extract ALL dated events and arrange them chronologically.
 
 Output ONLY a JSON object with a "timeline" key containing an array of event objects:

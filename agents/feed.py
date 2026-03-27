@@ -11,7 +11,7 @@ from backend.rag import retrieve
 client = AsyncGroq(api_key=os.getenv("GROQ_API_KEY", "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"))
 
 SYSTEM_PROMPT = """
-You are a brilliant financial curation engine for the Economic Times.
+You are a brilliant financial curation engine.
 Given a user profile and a list of recent news chunks, select the top 3 most relevant stories for this user.
 For each selected story, you must write a highly personalized 1-2 sentence summary explaining exactly WHY it matters to them based on their profile.
 
@@ -31,10 +31,13 @@ async def generate_personalized_feed(profile: Dict) -> List[Dict]:
     interests = profile.get("interests", ["markets", "economy"])
     role = profile.get("role", "general reader")
     expertise = profile.get("expertise_level", "beginner")
+    page = profile.get("page", 1)
+    
+    offset = (page - 1) * 4
     
     candidate_chunks = []
     for interest in interests:
-        chunks = retrieve(interest, n=4)
+        chunks = retrieve(interest, n=4, offset=offset)
         candidate_chunks.extend(chunks)
         
     unique_articles = {}

@@ -40,7 +40,7 @@ LANGUAGE_INSTRUCTIONS = {
 }
 
 SYSTEM_PROMPT_TEMPLATE = """
-You are a business news translator for ET (Economic Times) India.
+You are a business news translator for a Top-Tier Publication India.
 Translate the following English financial news text to {language_name}.
 
 CRITICAL RULES:

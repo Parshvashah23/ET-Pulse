@@ -23,7 +23,7 @@ export default function LanguageToggle({
   return (
     <div className="flex items-center gap-1">
       {!compact && (
-        <Globe className="w-4 h-4 text-et-ink-light mr-1" />
+        <Globe className="w-4 h-4 text-[var(--text-secondary)] mr-1" />
       )}
       {LANGUAGES.map((lang) => (
         <button
@@ -33,7 +33,7 @@ export default function LanguageToggle({
           className={`px-2.5 py-1 text-xs font-medium rounded-full transition-all ${
             selected === lang.code
               ? "bg-et-ink text-white shadow-sm"
-              : "bg-white border border-et-gray-border text-et-ink-light hover:bg-et-gray-light hover:text-et-ink"
+              : "bg-[var(--surface)] border border-[var(--border)] text-[var(--text-secondary)] hover:bg-et-gray-light hover:text-[var(--text-primary)]"
           }`}
         >
           {lang.label}

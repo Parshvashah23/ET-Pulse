@@ -11,10 +11,11 @@ export default function FeedPage() {
   const [profile, setProfile] = useState<any>(null);
   const [feed, setFeed] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // 1. Get profile from local storage
     const saved = localStorage.getItem("et_user_profile");
     if (!saved) {
       router.push("/onboarding");
@@ -23,30 +24,43 @@ export default function FeedPage() {
     
     const parsedObj = JSON.parse(saved);
     setProfile(parsedObj);
+  }, [router]);
+
+  useEffect(() => {
+    if (!profile) return;
     
     // 2. Fetch personalized feed
     const fetchFeed = async () => {
+      if (page === 1) setIsLoading(true);
+      else setIsLoadingMore(true);
+      
       try {
+        const payload = { ...profile, page };
         const res = await fetch("http://localhost:8000/api/feed", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(parsedObj),
+          body: JSON.stringify(payload),
         });
         
         if (!res.ok) throw new Error("Failed to load feed");
         
         const data = await res.json();
-        setFeed(data.feed || []);
+        if (page === 1) {
+            setFeed(data.feed || []);
+        } else {
+            setFeed(prev => [...prev, ...(data.feed || [])]);
+        }
       } catch (err) {
         console.error(err);
         setError("Unable to generate your feed right now.");
       } finally {
         setIsLoading(false);
+        setIsLoadingMore(false);
       }
     };
     
     fetchFeed();
-  }, [router]);
+  }, [profile, page]);
 
   if (!profile) return null; // Redirecting
 
@@ -70,7 +84,7 @@ export default function FeedPage() {
           </div>
           <div className="hidden sm:flex gap-2 items-center">
             {profile.interests.map((topic: string) => (
-              <span key={topic} className="px-3 py-1 bg-white/10 border border-white/20 rounded-full text-xs font-semibold">
+              <span key={topic} className="px-3 py-1 bg-[var(--surface)]/10 border border-white/20 rounded-full text-xs font-semibold">
                 {topic}
               </span>
             ))}
@@ -93,9 +107,9 @@ export default function FeedPage() {
         )}
 
         {!isLoading && !error && feed.length === 0 && (
-          <div className="p-8 text-center bg-white border border-et-gray-border rounded-xl w-full">
+          <div className="p-8 text-center bg-[var(--surface)] border border-[var(--border)] rounded-xl w-full">
             <h3 className="text-xl font-bold mb-2">No relevant stories found yet</h3>
-            <p className="text-et-ink-light mb-4">We are still collecting data for your hyper-specific interests.</p>
+            <p className="text-[var(--text-secondary)] mb-4">We are still collecting data for your hyper-specific interests.</p>
             <Link href="/onboarding" className="text-et-red font-medium hover:underline">
               Adjust your preferences
             </Link>
@@ -108,25 +122,25 @@ export default function FeedPage() {
           }) : 'Today';
           
           return (
-            <div key={i} className="bg-white border text-left border-et-gray-border rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow w-full">
+            <div key={i} className="bg-[var(--surface)] border text-left border-[var(--border)] rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow w-full">
               <div className="flex justify-between items-start mb-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-et-red bg-et-red/5 px-2 py-1 rounded">
                   {story.topic || 'News'}
                 </span>
-                <span className="text-xs font-medium text-et-ink-light">{displayDate}</span>
+                <span className="text-xs font-medium text-[var(--text-muted)]">{displayDate}</span>
               </div>
               
               <h2 className="text-2xl font-bold leading-tight mb-4 group-hover:text-et-red transition-colors">
                 <a href={story.url} target="_blank" rel="noopener noreferrer">{story.title}</a>
               </h2>
               
-              <div className="bg-gradient-to-r from-et-gray-light/40 to-transparent p-4 rounded-lg border-l-4 border-et-gold mb-5">
+              <div className="bg-gradient-to-r from-et-gray-light/10 to-transparent p-4 rounded-lg border-l-4 border-et-gold mb-5">
                  <p className="text-sm font-semibold text-et-gold mb-1 uppercase tracking-wide">Why it matters for you</p>
-                 <p className="text-et-ink-light leading-relaxed">{story.ai_summary}</p>
+                 <p className="text-[var(--text-secondary)] leading-relaxed">{story.ai_summary}</p>
               </div>
 
-              <div className="flex justify-between items-center border-t border-et-gray-light pt-4 mt-2">
-                 <span className="text-xs text-et-ink-light opacity-80">Curated by AI</span>
+              <div className="flex justify-between items-center border-t border-[var(--border)] pt-4 mt-2">
+                 <span className="text-xs text-[var(--text-muted)] opacity-80">Curated by AI</span>
                  <div className="flex gap-2">
                    <button
                      onClick={() => router.push(`/?q=${encodeURIComponent(story.title)}`)}
@@ -147,6 +161,19 @@ export default function FeedPage() {
             </div>
           );
         })}
+
+        {!isLoading && feed.length > 0 && (
+            <div className="pt-8 w-full flex justify-center">
+                <button
+                    onClick={() => setPage(p => p + 1)}
+                    disabled={isLoadingMore}
+                    className="px-8 py-3 bg-[var(--surface-elevated)] border border-[var(--border)] text-[var(--text-primary)] rounded-full font-bold hover:bg-et-red hover:text-white hover:border-et-red disabled:opacity-50 transition-colors flex items-center gap-2 shadow-sm"
+                >
+                    {isLoadingMore && <Loader2 className="w-4 h-4 animate-spin" />}
+                    {isLoadingMore ? "Curating more..." : "Load More Insights"}
+                </button>
+            </div>
+        )}
       </div>
     </div>
   );

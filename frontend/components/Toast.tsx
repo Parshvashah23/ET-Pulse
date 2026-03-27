@@ -71,7 +71,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
       <p className={`flex-1 text-sm font-medium ${color.text}`}>{toast.message}</p>
       <button
         onClick={onDismiss}
-        className={`p-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors ${color.text}`}
+        className={`p-1 rounded-lg hover:bg-black/5 dark:hover:bg-[var(--surface)]/5 transition-colors ${color.text}`}
       >
         <X className="w-4 h-4" />
       </button>

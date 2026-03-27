@@ -32,7 +32,7 @@ export default function SectionNav({ activeSection }: SectionNavProps) {
               key={sec.id}
               onClick={() => scrollTo(sec.id)}
               className={`cursor-pointer transition-all duration-300 relative ${
-                isActive ? 'text-et-red translate-x-1' : 'text-et-ink-light hover:text-et-ink'
+                isActive ? 'text-et-red translate-x-1' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               {isActive && (

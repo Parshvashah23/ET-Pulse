@@ -37,7 +37,7 @@ export default function SearchBar({ onSubmit, isSearching }: { onSubmit: (query:
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={PLACEHOLDERS[placeholderIndex]}
-        className="w-full pl-14 pr-32 py-4 text-lg bg-white border-2 border-et-gray-border rounded-full outline-none focus:border-et-red focus:ring-4 focus:ring-et-red/10 transition-all shadow-sm group-hover:shadow-md"
+        className="w-full pl-14 pr-32 py-4 text-lg bg-[var(--surface)] text-[var(--text-primary)] border-2 border-[var(--border)] rounded-full outline-none focus:border-et-red focus:ring-4 focus:ring-et-red/10 transition-all shadow-sm group-hover:shadow-md"
         disabled={isSearching}
       />
       <button
