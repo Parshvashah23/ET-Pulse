@@ -15,6 +15,7 @@
 [![Next.js 15](https://img.shields.io/badge/Frontend-Next.js%2015-000000?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![ChromaDB](https://img.shields.io/badge/VectorDB-ChromaDB-FF6F61?style=flat-square)](https://www.trychroma.com/)
+[![newsdata.io](https://img.shields.io/badge/News-newsdata.io-4A90D9?style=flat-square)](https://newsdata.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
 <br/>
@@ -23,7 +24,7 @@
 
 <br/>
 
-[Explore Features](#-the-5-core-experiences) · [Architecture](#️-system-architecture) · [Quick Start](#️-getting-started) · [Tech Stack](#-tech-stack) · [Contributing](#-contributing)
+[Explore Features](#-the-5-core-experiences) · [Architecture](#️-system-architecture) · [Quick Start](#️-getting-started) · [Tech Stack](#-tech-stack) · [Changelog](#-changelog) · [Contributing](#-contributing)
 
 </div>
 
@@ -33,7 +34,8 @@
 
 ET Pulse is a comprehensive financial intelligence platform built on a **multi-agent AI orchestration layer**. It reimagines how users consume complex financial news by delivering:
 
-- **RAG-powered synthesis** across ET's article archives with zero hallucinations
+- **Live news ingestion** via the `newsdata.io` API with a seamless offline ChromaDB fallback
+- **RAG-powered synthesis** across financial article archives with zero hallucinations
 - **Persona-aware feed curation** for students, investors, and professionals
 - **Narrative intelligence** that tracks complex financial stories end-to-end
 - **AI video generation** that converts briefings into broadcast-ready segments in under 30 seconds
@@ -45,10 +47,12 @@ ET Pulse is a comprehensive financial intelligence platform built on a **multi-a
 
 ### 1. 🔍 News Navigator — RAG Synthesis Engine
 
-Stop reading 15 articles to understand one event. Enter any query and the **Synthesis Agent** retrieves exact, cited snippets from across ET's archives to generate a structured, comprehensive briefing — streamed live.
+Stop reading 15 articles to understand one event. Enter any query and the **Synthesis Agent** retrieves exact, cited snippets from across financial archives to generate a structured, comprehensive briefing — streamed live.
 
 | Capability | Detail |
 |---|---|
+| **Live Data** | Real-time article ingestion via `newsdata.io` API (India-region, English) |
+| **Offline Fallback** | Automatic failover to local ChromaDB if the API rate-limits or fails |
 | **Embeddings** | Local `all-MiniLM-L6-v2` via `sentence-transformers` |
 | **Vector Store** | ChromaDB (persistent, local) |
 | **Streaming** | Real-time token delivery via Server-Sent Events (SSE) |
@@ -64,6 +68,8 @@ No two users are alike. The **Curation Agent** dynamically scores and ranks inco
 - **Roles Supported**: Undergraduate Student · Mutual Fund Investor · Tech Founder · Trader · Analyst
 - **Justification Blocks**: Every article surfaces a reason — *"This SEBI regulation directly affects your algo-trading portfolio."*
 - **Real-Time Rescoring**: Your feed re-ranks itself as new stories break
+- **Pagination**: "Load More Insights" support with cursor-offset logic for infinite scrolling through AI-curated news
+- **Regional Focus**: Hard-constrained to English-language, India-region (`country=in`) sources for maximum relevance
 
 ---
 
@@ -120,7 +126,7 @@ graph TD
     User([👤 User]) <--> Frontend[Next.js 15 · Tailwind 4 UI]
     Frontend <--> Backend[FastAPI Backend]
 
-    subgraph Agentic_Layer [🤖 Agentic Layer]
+    subgraph Agentic_Layer [🤖 Agentic Layer — 12+ Agents]
         Backend --> Synthesis[Synthesis Agent]
         Backend --> FactCheck[Fact-Check Agent]
         Backend --> FeedAgent[Curation Agent]
@@ -137,10 +143,11 @@ graph TD
     Translate --> LLM
 
     subgraph Data_Layer [🗄️ Data Layer]
-        Backend --> RAG[RAG Module]
-        RAG --> Chunker[Document Chunker]
-        Chunker --> Scraper[ET Article Scraper]
-        RAG --> Chroma[(ChromaDB Vector Store)]
+        Backend --> RAG[RAG Module — rag.py]
+        RAG -->|Primary| NewsAPI[newsdata.io Live API]
+        RAG -->|Fallback| Chroma[(ChromaDB Vector Store)]
+        NewsAPI --> Chunker[Document Chunker]
+        Chunker --> Chroma
     end
 
     subgraph Video_Pipeline [🎬 Video Pipeline]
@@ -164,6 +171,7 @@ graph TD
 | **Orchestration** | LangChain |
 | **Vector Database** | ChromaDB (persistent) |
 | **Embeddings** | `sentence-transformers` — `all-MiniLM-L6-v2` |
+| **Live News** | `newsdata.io` API (India-region, English) |
 | **Video Generation** | `moviepy` + `playwright` + `gTTS` |
 | **Data Validation** | Pydantic v2 |
 | **Database** | Supabase (PostgreSQL) |
@@ -174,15 +182,15 @@ graph TD
 |---|---|
 | **Framework** | Next.js 15 (App Router) |
 | **Language** | TypeScript |
-| **Styling** | Tailwind CSS 4 |
+| **Styling** | Tailwind CSS 4 + semantic CSS variables |
 | **Animations** | Framer Motion |
 | **Icons** | Lucide React |
-| **Typography** | Inter (Data/UI) + Instrument Serif (Editorial) |
+| **Typography** | Merriweather (Editorial) + Inter (Data/UI) |
 
 ### Design System
-- **Theme**: High-contrast dark/light mode with Slate/Zinc base and ET Red + Gold brand accents
+- **Theme**: High-contrast dark mode with semantic CSS variable tokens replacing all hardcoded classes; Slate/Zinc base with ET Red + Gold brand accents
 - **Effects**: Glassmorphism via `backdrop-filter`, noise textures, micro-interaction animations
-- **Philosophy**: Premium Fintech SaaS — professional Lucide SVG iconography, zero emojis
+- **Philosophy**: Premium Fintech SaaS — professional Lucide SVG iconography, financial-grade Merriweather + Inter typographic stack
 
 ---
 
@@ -193,7 +201,7 @@ ET-Pulse/
 ├── backend/
 │   ├── app/
 │   │   ├── api/            # REST & SSE endpoint definitions
-│   │   ├── agents/         # Individual AI agent modules
+│   │   ├── agents/         # Individual AI agent modules (12+)
 │   │   │   ├── synthesis.py
 │   │   │   ├── curation.py
 │   │   │   ├── timeline.py
@@ -204,6 +212,7 @@ ET-Pulse/
 │   │   ├── models/         # Pydantic schemas & data models
 │   │   ├── services/       # RAG pipeline, video assembly, scraper
 │   │   │   ├── rag/
+│   │   │   │   ├── rag.py          # Live API fetch + ChromaDB fallback
 │   │   │   │   ├── chunker.py
 │   │   │   │   ├── embedder.py
 │   │   │   │   └── retriever.py
@@ -220,13 +229,15 @@ ET-Pulse/
 └── frontend/
     ├── app/
     │   ├── api/            # API client layer
-    │   ├── feed/           # My ET Feed page
+    │   ├── feed/           # My ET Feed page (with pagination)
     │   ├── navigator/      # News Navigator (RAG) page
     │   ├── story/          # Story Arc Tracker page
     │   ├── video/          # AI Video Studio page
     │   ├── vernacular/     # Vernacular Newsroom page
+    │   ├── privacy/        # Privacy Policy page
+    │   ├── terms/          # Terms of Service page
     │   └── page.tsx        # Home / landing page
-    ├── components/         # Reusable UI components
+    ├── components/         # Reusable UI components (22+ dark-mode patched)
     │   ├── ui/
     │   ├── agents/
     │   └── layout/
@@ -245,6 +256,7 @@ ET-Pulse/
 - Python 3.10+
 - Docker & Docker Compose (optional, for containerized deployment)
 - A [Groq API Key](https://console.groq.com/)
+- A [newsdata.io API Key](https://newsdata.io/)
 
 ---
 
@@ -265,6 +277,9 @@ cp backend/.env.example backend/.env
 ```env
 # Required — Groq LLM inference
 GROQ_API_KEY=your_groq_api_key_here
+
+# Required — Live news ingestion
+NEWSDATA_API_KEY=your_newsdata_api_key_here
 
 # Required — Supabase database
 SUPABASE_URL=your_supabase_project_url
@@ -340,6 +355,8 @@ This starts the FastAPI backend, ChromaDB, and Supabase edge proxy in a networke
 | **Backend API (FastAPI)** | http://localhost:8000 |
 | **API Docs (Swagger)** | http://localhost:8000/docs |
 | **API Docs (ReDoc)** | http://localhost:8000/redoc |
+| **Privacy Policy** | http://localhost:3000/privacy |
+| **Terms of Service** | http://localhost:3000/terms |
 
 ---
 
@@ -348,11 +365,39 @@ This starts the FastAPI backend, ChromaDB, and Supabase edge proxy in a networke
 ### Why Groq?
 Ultra-low latency inference is critical for real-time streaming experiences. Groq's LPU architecture delivers token generation speeds that make SSE-streamed briefings feel instant rather than loading.
 
-### Why ChromaDB over Pinecone/Weaviate?
-For a hackathon-scale deployment, local ChromaDB provides zero-latency vector retrieval with no external API dependency. The persistent store survives restarts and can be upgraded to a cloud provider trivially.
+### Why newsdata.io + ChromaDB Fallback?
+Decoupling the frontend from static local data means the feed always reflects live market conditions. The `try/except` failover in `rag.py` ensures zero downtime — if the live API hits a rate limit, ChromaDB's persistent offline store serves as a seamless backup without any user-facing disruption.
 
 ### Why Multi-Agent over a Single Prompt?
-Each agent is independently optimized with a focused system prompt, enabling parallel execution (Story Arc's 5 agents run concurrently), independent failure isolation, and cleaner separation of concerns for future extensibility.
+Each of the 12+ agents is independently optimized with a focused system prompt, enabling parallel execution (Story Arc's 5 agents run concurrently), independent failure isolation, and cleaner separation of concerns for future extensibility. Agents are scoped as **"Top-Tier Financial Journalist"** personas rather than being restricted to a single publication, allowing them to synthesize any relevant financial content fetched from the live API.
+
+### Why Semantic CSS Variables?
+Hardcoded colour classes (`bg-white`, `text-et-ink`) break in dark mode. By running an automated sweep across all 22 affected components and replacing them with CSS variable tokens, dark mode is now consistent system-wide — including previously broken surfaces like the search bar, Story Arc dashboard, Video Studio, and the onboarding wizard.
+
+---
+
+## 📋 Changelog
+
+### Latest — `live news fetch | model testing`
+
+#### Data & Backend
+- **Real-Time News Ingestion**: Fully decoupled from static local data by integrating the `newsdata.io` API as the primary news source
+- **Zero-Downtime Fallback**: Refactored `backend/rag.py` with a `try/except` failover — live API failures or rate limits automatically fall back to local ChromaDB with no crash
+- **Agent Persona Broadening**: Rewrote system prompts across all 12+ AI agents; agents now operate as "Top-Tier Financial Journalists" able to synthesize any fetched financial content, not just ET-sourced articles
+- **Regional Sanitization**: Hardcoded global market fetches to `language=en` and `country=in` to keep the core feed India-relevant
+
+#### UI/UX & Design
+- **Deep Dark Mode Sweep**: Automated Python script traced and replaced hardcoded classes (`bg-white`, `text-et-ink`, etc.) with semantic CSS variables across 22 components and pages
+- **Professional Typography**: Replaced decorative fonts with the financial-grade **Merriweather + Inter** stack for a "Wall Street" editorial feel
+- **Dark Mode Bug Fixes**: Resolved search bar visibility and onboarding wizard high-contrast rendering issues
+
+#### Feed & Pagination
+- **Load More Support**: Added "Load More Insights" in the My ET Feed
+- **Cursor Offset Logic**: Updated frontend and backend API to handle `page` parameters for infinite AI-curated news scrolling
+
+#### Legal & Compliance
+- **Privacy Policy Page**: Responsive `/privacy` route styled with the app's premium aesthetic
+- **Terms of Service Page**: Responsive `/terms` route styled consistently
 
 ---
 
