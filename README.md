@@ -16,7 +16,7 @@
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![ChromaDB](https://img.shields.io/badge/VectorDB-ChromaDB-FF6F61?style=flat-square)](https://www.trychroma.com/)
 [![newsdata.io](https://img.shields.io/badge/News-newsdata.io-4A90D9?style=flat-square)](https://newsdata.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+
 
 <br/>
 
@@ -412,12 +412,6 @@ Contributions are welcome. Please follow these steps:
 5. Open a Pull Request
 
 Please ensure your PR includes relevant tests and follows the existing code style. For major changes, open an issue first to discuss the proposal.
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
 
 ---
 
