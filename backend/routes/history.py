@@ -1,56 +1,37 @@
 """
-Reading History API routes.
+Reading History API routes — powered by Supabase.
 Tracks articles viewed by authenticated users.
+Replaces SQLite with Supabase for persistent, user-scoped storage.
 """
-
-import sqlite3
-from pathlib import Path
-from datetime import datetime
 from typing import Optional, List
 
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel
 
 from backend.middleware.auth import get_current_user, get_optional_user
+from backend.db.supabase_client import get_supabase
 
 router = APIRouter(prefix="/history", tags=["history"])
 
-# Database path
-DB_PATH = Path(__file__).parent.parent.parent / "data" / "history.db"
-DB_PATH.parent.mkdir(exist_ok=True)
 
-
-def _get_connection():
-    """Get SQLite connection with WAL mode."""
-    conn = sqlite3.connect(str(DB_PATH), check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL")
-    return conn
-
-
-def _init_db():
-    """Initialize reading history table."""
-    conn = _get_connection()
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS reading_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            article_url TEXT NOT NULL,
-            article_title TEXT,
-            article_topic TEXT,
-            article_source TEXT,
-            read_at TEXT NOT NULL,
-            read_progress REAL DEFAULT 0,
-            UNIQUE(user_id, article_url)
-        )
-    """)
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_history_user_id ON reading_history(user_id)")
-    conn.commit()
-    conn.close()
-
-
-# Initialize on import
-_init_db()
+# NOTE: Run this SQL in Supabase SQL Editor if the reading_history table doesn't exist:
+# CREATE TABLE IF NOT EXISTS public.reading_history (
+#     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+#     user_id UUID NOT NULL REFERENCES public.users(user_id) ON DELETE CASCADE,
+#     article_url TEXT NOT NULL,
+#     article_title TEXT,
+#     article_topic TEXT,
+#     article_source TEXT,
+#     read_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+#     read_progress FLOAT DEFAULT 0,
+#     UNIQUE(user_id, article_url)
+# );
+# CREATE INDEX idx_history_user ON public.reading_history (user_id);
+# ALTER TABLE public.reading_history ENABLE ROW LEVEL SECURITY;
+# CREATE POLICY history_select_own ON public.reading_history FOR SELECT USING (auth.uid() = user_id);
+# CREATE POLICY history_insert_own ON public.reading_history FOR INSERT WITH CHECK (auth.uid() = user_id);
+# CREATE POLICY history_update_own ON public.reading_history FOR UPDATE USING (auth.uid() = user_id);
+# CREATE POLICY history_delete_own ON public.reading_history FOR DELETE USING (auth.uid() = user_id);
 
 
 # Request/Response models
@@ -63,7 +44,7 @@ class HistoryEntry(BaseModel):
 
 
 class HistoryResponse(BaseModel):
-    id: int
+    id: str
     article_url: str
     article_title: Optional[str]
     article_topic: Optional[str]
@@ -80,131 +61,108 @@ class HistoryListResponse(BaseModel):
 @router.post("", response_model=HistoryResponse, status_code=status.HTTP_201_CREATED)
 async def add_to_history(
     entry: HistoryEntry,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
     """Add or update an article in reading history."""
-    user_id = int(current_user["sub"])
-    now = datetime.utcnow().isoformat()
+    user_id = current_user["sub"]
+    sb = get_supabase()
 
-    conn = _get_connection()
-    try:
-        # Use INSERT OR REPLACE to update if exists
-        conn.execute(
-            """
-            INSERT INTO reading_history (user_id, article_url, article_title, article_topic, article_source, read_at, read_progress)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            ON CONFLICT(user_id, article_url) DO UPDATE SET
-                read_at = excluded.read_at,
-                read_progress = MAX(reading_history.read_progress, excluded.read_progress),
-                article_title = COALESCE(excluded.article_title, reading_history.article_title),
-                article_topic = COALESCE(excluded.article_topic, reading_history.article_topic),
-                article_source = COALESCE(excluded.article_source, reading_history.article_source)
-            """,
-            (
-                user_id,
-                entry.article_url,
-                entry.article_title,
-                entry.article_topic,
-                entry.article_source,
-                now,
-                entry.read_progress or 0
-            )
-        )
-        conn.commit()
+    payload = {
+        "user_id": user_id,
+        "article_url": entry.article_url,
+        "article_title": entry.article_title,
+        "article_topic": entry.article_topic,
+        "article_source": entry.article_source,
+        "read_progress": entry.read_progress or 0,
+    }
 
-        # Fetch the entry
-        row = conn.execute(
-            "SELECT * FROM reading_history WHERE user_id = ? AND article_url = ?",
-            (user_id, entry.article_url)
-        ).fetchone()
+    # Upsert: insert or update on conflict (user_id, article_url)
+    result = (
+        sb.table("reading_history")
+        .upsert(payload, on_conflict="user_id,article_url")
+        .execute()
+    )
 
+    if result.data:
+        row = result.data[0]
         return HistoryResponse(
             id=row["id"],
             article_url=row["article_url"],
-            article_title=row["article_title"],
-            article_topic=row["article_topic"],
-            article_source=row["article_source"],
+            article_title=row.get("article_title"),
+            article_topic=row.get("article_topic"),
+            article_source=row.get("article_source"),
             read_at=row["read_at"],
-            read_progress=row["read_progress"] or 0
+            read_progress=row.get("read_progress", 0) or 0,
         )
-    finally:
-        conn.close()
+
+    raise HTTPException(status_code=500, detail="Failed to add history entry")
 
 
 @router.get("", response_model=HistoryListResponse)
 async def get_history(
     limit: int = 50,
     offset: int = 0,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
     """Get reading history for the authenticated user."""
-    user_id = int(current_user["sub"])
+    user_id = current_user["sub"]
+    sb = get_supabase()
 
-    conn = _get_connection()
-    try:
-        rows = conn.execute(
-            """
-            SELECT * FROM reading_history
-            WHERE user_id = ?
-            ORDER BY read_at DESC
-            LIMIT ? OFFSET ?
-            """,
-            (user_id, limit, offset)
-        ).fetchall()
+    result = (
+        sb.table("reading_history")
+        .select("*")
+        .eq("user_id", user_id)
+        .order("read_at", desc=True)
+        .range(offset, offset + limit - 1)
+        .execute()
+    )
 
-        history = [
-            HistoryResponse(
-                id=row["id"],
-                article_url=row["article_url"],
-                article_title=row["article_title"],
-                article_topic=row["article_topic"],
-                article_source=row["article_source"],
-                read_at=row["read_at"],
-                read_progress=row["read_progress"] or 0
-            )
-            for row in rows
-        ]
+    history = [
+        HistoryResponse(
+            id=row["id"],
+            article_url=row["article_url"],
+            article_title=row.get("article_title"),
+            article_topic=row.get("article_topic"),
+            article_source=row.get("article_source"),
+            read_at=row["read_at"],
+            read_progress=row.get("read_progress", 0) or 0,
+        )
+        for row in (result.data or [])
+    ]
 
-        return HistoryListResponse(history=history, count=len(history))
-    finally:
-        conn.close()
+    return HistoryListResponse(history=history, count=len(history))
 
 
 @router.delete("", status_code=status.HTTP_204_NO_CONTENT)
 async def clear_history(
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ):
     """Clear all reading history for the authenticated user."""
-    user_id = int(current_user["sub"])
+    user_id = current_user["sub"]
+    sb = get_supabase()
 
-    conn = _get_connection()
-    try:
-        conn.execute("DELETE FROM reading_history WHERE user_id = ?", (user_id,))
-        conn.commit()
-    finally:
-        conn.close()
+    sb.table("reading_history").delete().eq("user_id", user_id).execute()
 
 
 @router.delete("/{history_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_history_entry(
-    history_id: int,
-    current_user: dict = Depends(get_current_user)
+    history_id: str,
+    current_user: dict = Depends(get_current_user),
 ):
     """Delete a specific history entry."""
-    user_id = int(current_user["sub"])
+    user_id = current_user["sub"]
+    sb = get_supabase()
 
-    conn = _get_connection()
-    try:
-        result = conn.execute(
-            "DELETE FROM reading_history WHERE id = ? AND user_id = ?",
-            (history_id, user_id)
+    result = (
+        sb.table("reading_history")
+        .delete()
+        .eq("id", history_id)
+        .eq("user_id", user_id)
+        .execute()
+    )
+
+    if not result.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="History entry not found",
         )
-        conn.commit()
-
-        if result.rowcount == 0:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="History entry not found"
-            )
-    finally:
-        conn.close()

@@ -16,6 +16,7 @@
 [![FastAPI](https://img.shields.io/badge/Backend-FastAPI-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![ChromaDB](https://img.shields.io/badge/VectorDB-ChromaDB-FF6F61?style=flat-square)](https://www.trychroma.com/)
 [![newsdata.io](https://img.shields.io/badge/News-newsdata.io-4A90D9?style=flat-square)](https://newsdata.io/)
+[![Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com/)
 
 
 <br/>
@@ -24,7 +25,7 @@
 
 <br/>
 
-[Explore Features](#-the-5-core-experiences) · [Architecture](#️-system-architecture) · [Quick Start](#️-getting-started) · [Tech Stack](#-tech-stack) · [Changelog](#-changelog) · [Contributing](#-contributing)
+[Explore Features](#-the-5-core-experiences) · [Architecture](#️-system-architecture) · [Database](#️-database-architecture) · [Quick Start](#️-getting-started) · [Tech Stack](#-tech-stack) · [Changelog](#-changelog) · [Contributing](#-contributing)
 
 </div>
 
@@ -148,6 +149,7 @@ graph TD
         RAG -->|Fallback| Chroma[(ChromaDB Vector Store)]
         NewsAPI --> Chunker[Document Chunker]
         Chunker --> Chroma
+        Backend --> Supabase[(Supabase · PostgreSQL)]
     end
 
     subgraph Video_Pipeline [🎬 Video Pipeline]
@@ -158,6 +160,256 @@ graph TD
         Assembler --> Output[1080p MP4 Output]
     end
 ```
+
+---
+
+## 🗄️ Database Architecture
+
+ET Pulse uses **Supabase (PostgreSQL)** as its primary relational store, with ChromaDB handling vector embeddings. The two layers are bridged via shared `article_id` / `chunk_id` UUIDs carried as ChromaDB metadata, so every vector search result can be joined back to the full relational context in a single query.
+
+### Migration Files
+
+| # | File | Contents |
+|---|------|---------|
+| 1 | `database/001_schema.sql` | 7 enum types, 15 tables, all foreign keys, indexes, triggers |
+| 2 | `database/002_rls_policies.sql` | RLS enabled on all tables + 25 explicit policies |
+| 3 | `database/003_storage.sql` | 3 storage buckets + owner-scoped access policies |
+
+### Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    auth_users ||--|| users : "1:1 profile"
+    users ||--o{ synthesis_queries : "submits"
+    users ||--o{ feed_items : "receives"
+    users ||--|| feed_pagination : "has cursor"
+    users ||--o{ stories : "tracks"
+    users ||--o{ video_jobs : "generates"
+    users ||--o{ translation_jobs : "requests"
+    users ||--o{ agent_run_logs : "triggers"
+
+    articles ||--o{ article_chunks : "split into"
+    articles ||--o{ feed_items : "scored as"
+    articles ||--o{ sentiment_timeseries : "sourced from"
+    articles ||--o{ translation_jobs : "translated from"
+
+    stories ||--o{ story_agent_outputs : "produces"
+    stories ||--o{ sentiment_timeseries : "measures"
+
+    video_jobs ||--o{ video_stage_logs : "logged by"
+```
+
+### Relationships
+
+**1:1**
+
+| Parent | Child | Join Key | Notes |
+|--------|-------|----------|-------|
+| `auth.users` | `public.users` | `user_id` UUID | Every Supabase Auth user gets exactly one profile row |
+| `public.users` | `public.feed_pagination` | `user_id` UUID PK | One pagination cursor per user |
+
+**1:Many**
+
+| Parent | Child | FK Column | Notes |
+|--------|-------|-----------|-------|
+| `users` | `synthesis_queries` | `user_id` | Each user can make many RAG queries |
+| `users` | `feed_items` | `user_id` | Each user has many curated feed items |
+| `users` | `stories` | `user_id` | Each user can track many stories |
+| `users` | `video_jobs` | `user_id` | Each user can generate many videos |
+| `users` | `translation_jobs` | `user_id` | Each user can request many translations |
+| `users` | `agent_run_logs` | `user_id` | Each user triggers many agent runs |
+| `articles` | `article_chunks` | `article_id` | One article is split into many chunks |
+| `articles` | `feed_items` | `article_id` | One article can appear in many users' feeds |
+| `articles` | `sentiment_timeseries` | `source_article_id` | One article generates many sentiment readings |
+| `articles` | `translation_jobs` | `source_article_id` | One article can be translated many times |
+| `stories` | `story_agent_outputs` | `story_id` | Each story has outputs from 5 agents per run |
+| `stories` | `sentiment_timeseries` | `story_id` | Each story accumulates many sentiment data points |
+| `video_jobs` | `video_stage_logs` | `job_id` | Each job has up to 4 stage logs |
+
+**Many:Many Bridge**
+
+| Table | Bridges | Unique Constraint |
+|-------|---------|-------------------|
+| `feed_items` | `users` ↔ `articles` | `(user_id, article_id)` — one relevance score per user per article |
+
+---
+
+### Enum Types (7 total)
+
+| Enum | Values | Used By |
+|------|--------|---------|
+| `user_role` | `student`, `mf_investor`, `tech_founder`, `trader`, `analyst` | `users.role` |
+| `story_status` | `active`, `archived` | `stories.status` |
+| `arc_agent_type` | `timeline`, `key_players`, `sentiment`, `predictions`, `contrarian` | `story_agent_outputs.agent_type` |
+| `sentiment_label` | `positive`, `neutral`, `negative` | `sentiment_timeseries.sentiment_label` |
+| `video_job_status` | `queued`, `processing`, `complete`, `failed` | `video_jobs.status` |
+| `video_stage` | `script`, `tts`, `slides`, `assembly` | `video_stage_logs.stage` |
+| `target_language` | `hindi`, `marathi`, `english` | `translation_jobs`, `language_glossary` |
+
+---
+
+### Index Strategy
+
+| Pattern | Index Type | Tables |
+|---------|-----------|--------|
+| `user_id` lookups | B-tree | All user-scoped tables |
+| `created_at DESC` | B-tree | All tables with temporal queries |
+| `(user_id, relevance_score DESC)` | Composite B-tree | `feed_items` — sorted feed queries |
+| `(story_id, measured_at DESC)` | Composite B-tree | `sentiment_timeseries` — time-series charts |
+| Text search on titles | GIN trigram | `articles`, `language_glossary` |
+| URL deduplication | Unique B-tree | `articles.url` |
+
+---
+
+### Row Level Security
+
+| Table | SELECT | INSERT | UPDATE | DELETE | Strategy |
+|-------|--------|--------|--------|--------|----------|
+| `users` | Own | Own | Own | Own | `auth.uid() = user_id` |
+| `articles` | Auth'd | — | — | — | Public read, service write |
+| `article_chunks` | Auth'd | — | — | — | Public read, service write |
+| `synthesis_queries` | Own | Own | — | — | Immutable audit log |
+| `feed_items` | Own | Own | Own | Own | Full user CRUD |
+| `feed_pagination` | Own | Own | Own | — | Cursor upsert |
+| `stories` | Own | Own | Own | Own | Full user CRUD |
+| `story_agent_outputs` | Own* | — | — | — | *Via JOIN to `stories.user_id` |
+| `sentiment_timeseries` | Own* | — | — | — | *Via JOIN to `stories.user_id` |
+| `video_jobs` | Own | Own | — | — | User creates, service updates |
+| `video_stage_logs` | Own* | — | — | — | *Via JOIN to `video_jobs.user_id` |
+| `translation_jobs` | Own | Own | — | — | Immutable job records |
+| `language_glossary` | Auth'd | — | — | — | Read-only reference data |
+| `agent_run_logs` | Own | — | — | — | Read own, service writes |
+| `api_usage_logs` | — | — | — | — | Service-only (no user policies) |
+
+---
+
+### Storage Buckets
+
+| Bucket | Public | Size Limit | MIME Types | Path Pattern |
+|--------|--------|-----------|------------|--------------|
+| `video-outputs` | No | 100 MB | MP4, WebM | `{user_id}/*.mp4` |
+| `audio-outputs` | No | 20 MB | MP3, WAV, OGG | `{user_id}/*.mp3` |
+| `article-media` | Yes | 10 MB | JPEG, PNG, WebP, GIF, SVG | Public read, service write |
+
+> Upload files with the path pattern `{user_id}/{filename}` to leverage the folder-based RLS policies automatically.
+
+---
+
+### ChromaDB ↔ Supabase Join Strategy
+
+ChromaDB handles vector similarity search; Supabase handles all relational semantics. Every chunk ingested into ChromaDB carries Supabase UUIDs as metadata, enabling vector results to be joined back to user state, feed scores, and sentiment data in a single Supabase query.
+
+**Required metadata on every ChromaDB document:**
+
+```python
+chroma_collection.add(
+    ids=[chunk_chroma_id],
+    documents=[chunk_text],
+    metadatas=[{
+        # Supabase join keys
+        "article_id":   str(article_uuid),   # → articles.article_id
+        "chunk_id":     str(chunk_uuid),     # → article_chunks.chunk_id
+        "chunk_index":  chunk_index,         # → article_chunks.chunk_index
+        # Denormalised fields for filter-without-join
+        "title":    article_title,
+        "url":      article_url,
+        "date":     published_at_iso,
+        "topic":    category_string,
+        "source":   source_name,
+        "language": "en",
+        "country":  "in",
+    }],
+    embeddings=[embedding_vector],
+)
+```
+
+**Join flow — vector search result → full relational context:**
+
+```
+User Query
+    │
+    ▼
+ChromaDB.query(query_embedding, n_results=5)
+    │  returns: chunk texts + metadata (article_id, chunk_id)
+    ▼
+Supabase: SELECT * FROM articles WHERE article_id = ANY($1)
+    │
+    ▼
+Full article metadata + user feed state + sentiment data
+```
+
+**Joinable paths from a single `metadata.article_id`:**
+
+| Target | Query |
+|--------|-------|
+| Full article metadata | `articles WHERE article_id = ?` |
+| All chunks of that article | `article_chunks WHERE article_id = ?` |
+| User's feed relevance score | `feed_items WHERE article_id = ? AND user_id = ?` |
+| Sentiment readings | `sentiment_timeseries WHERE source_article_id = ?` |
+| Translations | `translation_jobs WHERE source_article_id = ?` |
+
+---
+
+### Python Integration (supabase-py)
+
+The `backend/db/supabase_client.py` module exposes 10 async helper functions for use across FastAPI route handlers:
+
+```python
+from backend.db import (
+    insert_feed_item,          # Score and store an article for a user
+    get_story_agent_outputs,   # Fetch all 5 agents' outputs for a story
+    log_agent_run,             # Observability — log any agent run
+    upsert_article,            # Ingest an article from newsdata.io
+    save_story_agent_output,   # Persist one agent's output JSON
+    bulk_insert_feed_items,    # Batch-score multiple articles
+    create_video_job,          # Initialise a video pipeline job
+    update_video_job_status,   # Update job status and output URLs
+    log_api_usage,             # Track newsdata.io call metadata
+)
+```
+
+**Insert a scored feed item:**
+```python
+await insert_feed_item(
+    user_id="d4e5f6a7-...",
+    article_id="a1b2c3d4-...",
+    relevance_score=0.87,
+    justification="This SEBI regulation directly affects your algo-trading portfolio.",
+)
+```
+
+**Fetch all Story Arc agent outputs:**
+```python
+outputs = await get_story_agent_outputs(story_id="abc123...")
+timeline  = outputs.get("timeline",  {}).get("output_json", {})
+sentiment = outputs.get("sentiment", {}).get("output_json", {})
+```
+
+**Log an agent run for observability:**
+```python
+await log_agent_run(
+    agent_type="synthesis",
+    module="news_navigator",
+    prompt_tokens=1200,
+    completion_tokens=850,
+    latency_ms=1340,
+    user_id="d4e5f6a7-...",
+)
+```
+
+---
+
+### Migration Order
+
+Run the following in your Supabase SQL Editor **in sequence**:
+
+```
+1. database/001_schema.sql        — Enums, tables, indexes, triggers
+2. database/002_rls_policies.sql  — Enable RLS + all 25 policies
+3. database/003_storage.sql       — Buckets + storage access policies
+```
+
+> **Important:** The schema references `auth.users`. Ensure Supabase Auth is enabled on your project *before* running any migration — the `users` table carries a hard foreign key to `auth.users(id)`.
 
 ---
 
@@ -172,9 +424,9 @@ graph TD
 | **Vector Database** | ChromaDB (persistent) |
 | **Embeddings** | `sentence-transformers` — `all-MiniLM-L6-v2` |
 | **Live News** | `newsdata.io` API (India-region, English) |
+| **Relational Database** | Supabase (PostgreSQL) — 15 tables, 7 enums, 25 RLS policies |
 | **Video Generation** | `moviepy` + `playwright` + `gTTS` |
 | **Data Validation** | Pydantic v2 |
-| **Database** | Supabase (PostgreSQL) |
 | **Containerization** | Docker + Docker Compose |
 
 ### Frontend
@@ -222,9 +474,16 @@ ET-Pulse/
 │   │   │   │   └── assembler.py
 │   │   │   └── scraper.py
 │   │   └── main.py         # FastAPI app entry point
+│   ├── db/
+│   │   └── supabase_client.py  # 10 async Supabase helper functions
 │   ├── requirements.txt
 │   ├── .env.example
 │   └── docker-compose.yml
+│
+├── database/
+│   ├── 001_schema.sql          # 7 enums, 15 tables, indexes, triggers
+│   ├── 002_rls_policies.sql    # RLS + 25 explicit policies
+│   └── 003_storage.sql         # 3 storage buckets + access policies
 │
 └── frontend/
     ├── app/
@@ -257,6 +516,7 @@ ET-Pulse/
 - Docker & Docker Compose (optional, for containerized deployment)
 - A [Groq API Key](https://console.groq.com/)
 - A [newsdata.io API Key](https://newsdata.io/)
+- A [Supabase project](https://supabase.com/) with Auth enabled
 
 ---
 
@@ -267,7 +527,17 @@ git clone https://github.com/your-org/et-pulse.git
 cd et-pulse
 ```
 
-### 2. Configure Environment Variables
+### 2. Run Database Migrations
+
+In your Supabase project's SQL Editor, run in order:
+
+```
+database/001_schema.sql
+database/002_rls_policies.sql
+database/003_storage.sql
+```
+
+### 3. Configure Environment Variables
 
 **Backend** — create `backend/.env` from the example:
 ```bash
@@ -300,7 +570,7 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
 
 ---
 
-### 3a. One-Click Start (Windows — PowerShell)
+### 4a. One-Click Start (Windows — PowerShell)
 
 ```powershell
 # From the project root — installs all dependencies and starts both servers
@@ -315,7 +585,7 @@ This script will:
 
 ---
 
-### 3b. Manual Start (Linux / macOS)
+### 4b. Manual Start (Linux / macOS)
 
 **Start the Backend:**
 ```bash
@@ -336,7 +606,7 @@ npm run dev
 
 ---
 
-### 3c. Docker Compose
+### 4c. Docker Compose
 
 ```bash
 # From the project root
@@ -371,6 +641,9 @@ Decoupling the frontend from static local data means the feed always reflects li
 ### Why Multi-Agent over a Single Prompt?
 Each of the 12+ agents is independently optimized with a focused system prompt, enabling parallel execution (Story Arc's 5 agents run concurrently), independent failure isolation, and cleaner separation of concerns for future extensibility. Agents are scoped as **"Top-Tier Financial Journalist"** personas rather than being restricted to a single publication, allowing them to synthesize any relevant financial content fetched from the live API.
 
+### Why Supabase as the Relational Layer?
+ChromaDB is optimized for vector similarity search but has no relational semantics — no user scoping, no foreign keys, no audit trails. Supabase provides all of that, plus Row Level Security so user data is isolated at the database layer rather than enforced in application code. The two stores are bridged by carrying `article_id` and `chunk_id` UUIDs in ChromaDB metadata, so every vector search result can be joined back to the full relational context in a single query.
+
 ### Why Semantic CSS Variables?
 Hardcoded colour classes (`bg-white`, `text-et-ink`) break in dark mode. By running an automated sweep across all 22 affected components and replacing them with CSS variable tokens, dark mode is now consistent system-wide — including previously broken surfaces like the search bar, Story Arc dashboard, Video Studio, and the onboarding wizard.
 
@@ -383,12 +656,19 @@ Hardcoded colour classes (`bg-white`, `text-et-ink`) break in dark mode. By runn
 #### Data & Backend
 - **Real-Time News Ingestion**: Fully decoupled from static local data by integrating the `newsdata.io` API as the primary news source
 - **Zero-Downtime Fallback**: Refactored `backend/rag.py` with a `try/except` failover — live API failures or rate limits automatically fall back to local ChromaDB with no crash
-- **Agent Persona Broadening**: Rewrote system prompts across all 12+ AI agents; agents now operate as "Top-Tier Financial Journalists" able to synthesize any fetched financial content, not just ET-sourced articles
+- **Agent Persona Broadening**: Rewrote system prompts across all 12+ AI agents; agents now operate as "Top-Tier Financial Journalists" able to synthesize any fetched financial content
 - **Regional Sanitization**: Hardcoded global market fetches to `language=en` and `country=in` to keep the core feed India-relevant
 
+#### Database
+- **Supabase Schema**: Deployed 15-table PostgreSQL schema with 7 enum types, composite indexes, and `updated_at` triggers via `001_schema.sql`
+- **Row Level Security**: Enabled RLS on all 15 tables with 25 explicit policies — user data isolated at the database layer via `002_rls_policies.sql`
+- **Storage Buckets**: Created `video-outputs`, `audio-outputs`, and `article-media` buckets with owner-scoped access policies via `003_storage.sql`
+- **Python Client**: Built `backend/db/supabase_client.py` with 10 async helper functions for feed scoring, story arc retrieval, agent observability, and video job management
+- **ChromaDB Bridge**: Standardised metadata tagging (`article_id`, `chunk_id`, `chunk_index`) on all ChromaDB documents to enable direct Supabase joins from vector search results
+
 #### UI/UX & Design
-- **Deep Dark Mode Sweep**: Automated Python script traced and replaced hardcoded classes (`bg-white`, `text-et-ink`, etc.) with semantic CSS variables across 22 components and pages
-- **Professional Typography**: Replaced decorative fonts with the financial-grade **Merriweather + Inter** stack for a "Wall Street" editorial feel
+- **Deep Dark Mode Sweep**: Automated Python script traced and replaced hardcoded classes across 22 components with semantic CSS variables
+- **Professional Typography**: Replaced decorative fonts with the financial-grade **Merriweather + Inter** stack
 - **Dark Mode Bug Fixes**: Resolved search bar visibility and onboarding wizard high-contrast rendering issues
 
 #### Feed & Pagination
